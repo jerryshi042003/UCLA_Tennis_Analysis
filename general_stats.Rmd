@@ -1,0 +1,243 @@
+---
+title: "General Stats"
+author: "Shiyu Murashima (205581974)"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(dplyr)
+library(zoo)
+library(ggplot2)
+library(grid)
+library(kableExtra)
+
+col_names <- c("1st Serve In", "2nd Serve In", "1st Serve Won", "2nd Serve Won", "Ace",
+               "Double Fault", "Service Points Won", "Return Points Won")
+
+# Summary Statistics Table Function
+percent_table <- function(data, player){
+  serveIn <- data %>% 
+    filter(serverName == player) %>% 
+    summarise("firstServeInPercent" = (length(which((firstServeIn == 1))) / 
+                length(which((firstServeIn == 1 | firstServeIn == 0))))*100,
+              "secondServeInPercent" = (length(which((secondServeIn == 1))) / 
+                length(which((secondServeIn == 1 | secondServeIn == 0))))*100)
+
+  firstServeWon <- data
+  firstServeWon$firstServeIn <- na.locf(firstServeWon$firstServeIn)
+  firstServeWon <- firstServeWon %>% 
+    filter(serverName == player & firstServeIn == 1 & isPointEnd == 1 & is.na(isWinner)) %>% 
+    summarise("firstServeWonPercent" = (length(which(shotInRally %% 2 != 0)) /
+                                          length(shotInRally))*100)
+
+  secondServeWon <- data
+  secondServeWon$firstServeIn <- na.locf(secondServeWon$firstServeIn)
+  secondServeWon$secondServeIn <- na.locf(secondServeWon$secondServeIn, na.rm = FALSE)
+  secondServeWon <- secondServeWon %>% 
+    filter(serverName == player & secondServeIn == 1 & isPointEnd == 1 & is.na(isWinner)) %>% 
+    summarise("secondServeWonPercent" = (length(which(shotInRally %% 2 != 0)) /
+                                           length(shotInRally))*100)
+
+  aceDoubleFault <- data %>% 
+    filter(serverName == player) %>%
+    summarise("acePercent" = ((length(which((firstServeIn == 1 | secondServeIn == 1) & isPointStart == 1 & 
+                                              isPointEnd == 1))) / 
+                (length(which(firstServeIn == 1 | firstServeIn == 0)))*100),
+              "doubleFaultPercent" = ((length(which(firstServeIn != 1 & secondServeIn != 1
+                                                    & isPointStart == 1 & isPointEnd == 1))) /
+                (length(which(firstServeIn == 1 | firstServeIn == 0)))*100))
+
+  servicePointsWon <- data %>% 
+    filter(serverName == player & !is.na(isWinner)) %>% 
+    summarise("servicePointsWonPercent" = ((length(which(isPointEnd == 1 & shotInRally %% 2 != 0))) /
+                (length(which(isPointEnd == 1 & shotInRally %% 2 != 0)) +
+                length(which(isPointEnd == 1 & shotInRally %% 2 == 0))))*100)
+
+  returnPointsWon <- data %>% 
+    filter(serverName != player & !is.na(isWinner)) %>% 
+    summarise("returnPointsWonPercent" = ((length(which(isPointEnd == 1 & shotInRally %% 2 == 0))) /
+                (length(which(isPointEnd == 1 & shotInRally %% 2 != 0)) +
+                length(which(isPointEnd == 1 & shotInRally %% 2 == 0))))*100)
+
+  temp_df <- data.frame(serveIn, firstServeWon, secondServeWon, 
+                        aceDoubleFault, servicePointsWon, returnPointsWon)
+
+  data <- data.frame("Stat" = col_names, 
+                     "Percent" = round(as.numeric(unlist(temp_df[1,])), digits = 1))
+  
+  data$Stat <- factor(data$Stat, levels = c("1st Serve In", "2nd Serve In", "1st Serve Won", 
+                                            "2nd Serve Won", "Ace", "Double Fault", 
+                                            "Service Points Won", "Return Points Won"))
+  
+  data
+}
+
+# Additional Count Table Function
+count_table <- function(data){
+  data %>% 
+    group_by(serverName) %>% 
+    filter(isPointStart == 1 & isPointEnd == 1) %>% 
+    summarise("Ace Count" = sum(firstServeIn == 1 | secondServeIn == 1),
+              "Double Fault Count" = sum(firstServeIn != 1 & secondServeIn != 1))
+}
+
+# Summary Plot Function
+sum_plot <- function(data){
+  ggplot(data, aes(Stat, Percent)) +
+    geom_bar(stat = "identity", aes(fill = Server), position = "dodge") +
+    geom_label(aes(label = Percent), colour = "black", cex = 5) +
+    labs(title = "Summary Statistics", x = "", size = 12) +
+    theme(plot.title = element_text(hjust = 0.5),
+          strip.text = element_text(size = 12),
+          strip.background = element_rect(fill = "gray95"),
+          panel.background = element_rect(fill = "white"),
+          panel.grid.major.x = element_line(color = "gray95"),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank(),
+          axis.text.x = element_blank(),
+          axis.text.y = element_text(size = 12),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "none") + 
+    coord_flip() +
+    facet_grid(. ~ Server, scales = "free_y") +
+    scale_fill_manual(values = c("#2D68C4", "#F2A900")) +
+    scale_x_discrete(limits = rev(levels(data$Stat)))
+}
+
+# Original Summary Plot Function
+# http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_%28ggplot2%29/
+# multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+#   require(grid)
+#   plots <- c(list(...), plotlist)
+#   numPlots = length(plots)
+#   if (is.null(layout)) {
+#     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+#                      ncol = cols, nrow = ceiling(numPlots/cols))
+#   }
+#   if (numPlots==1) {
+#     print(plots[[1]])
+#   } else {
+#     grid.newpage()
+#     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+#     for (i in 1:numPlots) {
+#       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+#       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+#                                         layout.pos.col = matchidx$col))
+#     }
+#   }
+# }
+# 
+# sum_plot <- function(dataA, dataB, playerA, playerB){
+#   g1 <- ggplot(data = dataA, aes(x = Stat, y = Percent)) +
+#     geom_bar(stat = "identity", fill = "#2D68C4") + 
+#     geom_text(aes(label = Percent), hjust = 1.1, colour = "black", cex = 5) +
+#     ggtitle(playerA) +
+#     theme(axis.title.x = element_blank(), axis.title.y = element_blank(), 
+#           axis.ticks.y = element_blank(), axis.text.y = element_text(size = 10),
+#           axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+#           plot.margin = unit(c(1, 0, 1, 0), "mm"), plot.title = element_text(hjust = 0.5),
+#           panel.background = element_rect(fill = "gray96", color = "white")) +
+#     scale_y_reverse() +
+#     scale_x_discrete(limits = rev(levels(dataA$Stat))) +
+#     coord_flip()
+# 
+#   g2 <- ggplot(data = dataB, aes(x = Stat, y = Percent)) +
+#     geom_bar(stat = "identity", fill = "#F2A900") +
+#     geom_text(aes(label = Percent), hjust = -0.1, colour = "black", cex = 5) +
+#     ylim(0, 100) +
+#     ggtitle(playerB) +
+#     theme(axis.title.x = element_blank(), axis.title.y = element_blank(), 
+#           axis.ticks.y = element_blank(), axis.text.y = element_blank(),
+#           axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+#           plot.margin = unit(c(1, 0, 1, 0), "mm"), plot.title = element_text(hjust = 0.5),
+#           panel.background = element_rect(fill = "gray96", color = "white")) +
+#     scale_x_discrete(limits = rev(levels(dataB$Stat))) +
+#     coord_flip()
+# 
+#   multiplot(g1, g2, cols = 2)
+# }
+```
+
+```{r}
+# Plot Summary Statistics Table
+df <- read.csv("Spencer_Johnson_vs._A&M_1_17.csv") # edit csv file name
+playerA <- "Spencer Johnson" # edit player (UCLA) name
+playerB <- "Tiago Pires" # edit player (opponent) name
+percentA <- data.frame(Server = playerA, percent_table(df, playerA))
+percentB <- data.frame(Server = playerB, percent_table(df, playerB))
+percent_df <- rbind(percentA, percentB)
+p1 <- sum_plot(percent_df)
+p2 <- p1 + scale_y_reverse()
+g1 <- ggplotGrob(p1)
+g2 <- ggplotGrob(p2)
+g1$grobs[grep("panel-1-1", g1$layout$name)] <- g2$grobs[grep("panel-1-1", g2$layout$name)]
+g1$grobs[grep('axis-b-1', g1$layout$name)] <- g2$grobs[grep('axis-b-2', g2$layout$name)]
+grid.newpage(); grid.draw(g1)
+```
+
+```{r}
+# Plot Count Table
+count_table(df) %>%
+  kbl() %>%
+  kable_styling()
+```
+
+```{r}
+df1 <- read.csv("Govind Nanda vs A&M Set 1 - Sheet1.csv")
+colnames(df1)[colnames(df1) == "Topspin"] <- "shotSpin"
+df2 <- read.csv("Govind Nanda 1_17 Texas A&M Set 2.csv")
+colnames(df2)[colnames(df2) == "Notes..Stopped.at.1.40.02"] <- "Notes"
+df <- rbind(df1, df2)
+# write.csv(df, "/Users/ShiyuMurashima/Desktop/UCLA Tennis/Govind Nanda vs A&M FULL MATCH.csv",
+#           row.names = FALSE)
+
+playerA <- "Nanda" # edit player (UCLA) name
+playerB <- "Perot" # edit player (opponent) name
+percentA <- data.frame(Server = playerA, percent_table(df, playerA))
+percentB <- data.frame(Server = playerB, percent_table(df, playerB))
+percent_df <- rbind(percentA, percentB)
+p1 <- sum_plot(percent_df)
+p2 <- p1 + scale_y_reverse()
+g1 <- ggplotGrob(p1)
+g2 <- ggplotGrob(p2)
+g1$grobs[grep("panel-1-1", g1$layout$name)] <- g2$grobs[grep("panel-1-1", g2$layout$name)]
+g1$grobs[grep('axis-b-1', g1$layout$name)] <- g2$grobs[grep('axis-b-2', g2$layout$name)]
+grid.newpage(); grid.draw(g1)
+```
+
+```{r}
+count_table(df) %>%
+  kbl() %>%
+  kable_styling()
+```
+
+```{r}
+df <- read.csv("HanceRapoluFullMatch.csv")
+playerA <- "Kimmi Hance" # edit player (UCLA) name
+playerB <- "Malaika Rapolu" # edit player (opponent) name
+percentA <- data.frame(Server = playerA, percent_table(df, playerA))
+percentB <- data.frame(Server = playerB, percent_table(df, playerB))
+percent_df <- rbind(percentA, percentB)
+p1 <- sum_plot(percent_df)
+p2 <- p1 + scale_y_reverse()
+g1 <- ggplotGrob(p1)
+g2 <- ggplotGrob(p2)
+g1$grobs[grep("panel-1-1", g1$layout$name)] <- g2$grobs[grep("panel-1-1", g2$layout$name)]
+g1$grobs[grep('axis-b-1', g1$layout$name)] <- g2$grobs[grep('axis-b-2', g2$layout$name)]
+grid.newpage(); grid.draw(g1)
+```
+
+```{r}
+temp_table <- count_table(df)
+temp_table[2, 2] <- 1
+temp_table[2, 3] <- 2
+temp_table %>% 
+  kbl() %>% 
+  kable_styling()
+```
+
