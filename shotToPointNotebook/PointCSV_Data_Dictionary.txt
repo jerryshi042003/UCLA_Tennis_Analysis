@@ -1,0 +1,262 @@
+Column Name: pointNumber
+Description: Number of the point in the match, starting from 1 and increasing incrementally.
+Data Type: Integer
+
+Column Name: player1Name
+Description: Name of Player 1.
+Data Type: String
+
+Column Name: player2Name
+Description: Name of Player 2.
+Data Type: String
+
+Column Name: pointScore
+Description: Score of the point.
+Data Type: String
+
+Column Name: gameScore
+Description: Score of the games in the set, in the order of Player 1 to Player 2.
+Data Type: String
+
+Column Name: side
+Description: Side where the point starts.
+Data Type: String
+
+Column Name: serverName
+Description: Name of the server.
+Data Type: String
+
+Column Name: returnerName
+Description: Name of the returner.
+Data Type: String
+
+Column Name: Position
+Description: Timestamp of the video connected to the start of the point.
+Data Type: String
+
+Column Name: pointEndPosition
+Description: Timestamp of the video connected to the end of the point.
+Data Type: String
+
+Column Name: Duration
+Description: Duration of the point.
+Data Type: String
+
+Column Name: rallyCount
+Description: Number of shots in the point.
+Data Type: Integer
+
+Column Name: rallyCountFreq
+Description: Frequency of rally counts categorized into ranges. Separated into 1-4, 5-8, 9-12, and 13+ categories
+Data Type: String
+
+Column Name: firstServeIn
+Description: Indicator for whether the first serve is in (1 if in, 0 if not).
+Data Type: Integer
+
+Column Name: secondServeIn
+Description: Indicator for whether the second serve is in (1 if in, 0 if not).
+Data Type: Integer
+
+Column Name: serveResult
+Description: Result of the serve.
+Data Type: String
+
+Column Name: serveInPlacement
+Description: Placement of the serve (e.g., Wide, Body, T).
+Data Type: String
+
+Column Name: firstServeZone
+Description: Zone of the first serve, even if missed.
+Data Type: String
+
+Column Name: secondServeZone
+Description: Zone of the second serve if attempted.
+Data Type: String
+
+Column Name: isAce
+Description: Indicator for whether the point is an ace.
+Data Type: Boolean
+
+Column Name: returnDirection
+Description: Direction of the return (e.g., Cross or Down the Line).
+Data Type: String
+
+Column Name: returnFhBh
+Description: Forehand or backhand of the return.
+Data Type: String
+
+Column Name: errorType
+Description: Type of error if there is an error; otherwise, empty string.
+Data Type: String
+
+Column Name: returnError
+Description: Type of error if it is a return error.
+Data Type: String
+
+Column Name: lastShotDirection
+Description: Direction of the last shot.
+Data Type: String
+
+Column Name: lastShotFhBh
+Description: Forehand or backhand of the last shot.
+Data Type: String
+
+Column Name: lastShotHitBy
+Description: Player who hit the last shot.
+Data Type: String
+
+Column Name: lastShotResult
+Description: Result of the last shot.
+Data Type: String
+
+Column Name: pointWonBy
+Description: Player who won the point.
+Data Type: String
+
+Column Name: isBreakPoint
+Description: Indicator for whether it is a break point.
+Data Type: Boolean
+
+Column Name: atNetPlayer1
+Description: Name of Player 1 if they are at the net.
+Data Type: String
+
+Column Name: atNetplayer2
+Description: Indicator for whether Player 2 is at the net.
+Data Type: Integer
+
+Column Name: setScore
+Description: Score of the set.
+Data Type: String
+
+Column Name: setNum
+Description: Consecutive set number, starting at set 1.
+Data Type: Integer
+
+Column Name: player1SetScore
+Description: Number of sets won by Player 1.
+Data Type: String
+
+Column Name: player2SetScore
+Description: Number of sets won by Player 2.
+Data Type: String
+
+Column Name: player1GameScore
+Description: Number of games won by Player 1.
+Data Type: String
+
+Column Name: player2GameScore
+Description: Number of games won by Player 2.
+Data Type: String
+
+Column Name: player1PointScore
+Description: Number of points won by Player 1.
+Data Type: String
+
+Column Name: player2PointScore
+Description: Number of points won by Player 2.
+Data Type: String
+
+Column Name: gameNumber
+Description: Game number in the set, with the first game being 1.
+Data Type: Integer
+
+Column Name: player1ServeResult
+Description: Serve result only if Player 1 is serving.
+Data Type: String
+
+Column Name: player1ServePlacement
+Description: Serve placement for only Player 1. Includes side and placement like "Duece: Body"
+Data Type: String
+
+Column Name: player1ReturnPlacement
+Description: Return placement for only Player 1.
+Data Type: String
+
+Column Name: player1ReturnFhBh
+Description: Return forehand or backhand for only Player 1.
+Data Type: String
+
+Column Name: player1LastShotPlacement
+Description: Placement of the last shot if hit by Player 1.
+Data Type: String
+
+Column Name: player1LastShotFhBh
+Description: Forehand or backhand of the last shot if it was hit by Player 1.
+Data Type: String
+
+Column Name: player1LastShotResult
+Description: Result of the last shot if it was hit by Player 1.
+Data Type: String
+
+Column Name: pointScoreCopy
+Description: Copy of the point score.
+Data Type: String
+
+Column Name: Name
+Description: Name of the point in the format "Set x: GameScore, PointScore Player 2 Serving".
+Data Type: String
+
+
+
+
+
+
+
+
+Original Notes:
+
+- all NA's, NaN, None are converted to empty string "", so that "" can be hidden on match viewer
+- ['pointNumber': number of point in match, start from 1 increase incrementally
+ 'player1Name', forward filled by first manually inputted value from tagger
+'player2Name',  forward filled by first manually inputted value from tagger
+'pointScore', score of game server Score first
+ 'gameScore', score of games in set in order of player1 to player2
+       'side', side point starts
+'serverName',
+ 'returnerName',
+'Position', timestamp of video connected to start of point
+'pointEndPosition', timestamp of video connected to end of point
+       'Duration', 
+'rallyCount', how many shots in a point, serve is 1st shot, double fault counts as rallyCount = 1, last ball missed counts as a shot
+'rallyCountFreq', separated into 1-4, 5-8, 9-12, and 13+ categories
+'firstServeIn', 1 if in, 0 if not
+       'secondServeIn', 1 if in, 0 if not
+'serveResult', possible output ['1st Serve In' '2nd Serve In' 'Double Fault']
+ 'serveInPlacement', ['Wide' 'Body' '' 'T'] only for serves that are in, so "" empty string if serve not in
+ 'firstServeZone', zone of first serve even if missed
+       'secondServeZone', zone of second serve if attempted
+'isAce', 1 if ace
+'returnDirection', cross or downtheline
+ 'returnFhBh', forehand or backhand
+       'errorType', error type if error otherwise ""
+'returnError', error type if it is a return error
+'lastShotDirection',
+ 'lastShotFhBh',
+       'lastShotHitBy', 
+'lastShotResult', 
+'pointWonBy',
+ 'isBreakPoint', 1 if break point, returner has opportunity to win the current game
+       'atNetPlayer1', set to name of player1 if he appears at net
+ 'atNetplayer2', set to 0 and 1 if player2 comes to net at any time in a point
+ 'setScore', 
+'setNum', consecutive set number, starts at set 1
+'player1SetScore', their amount of sets won
+
+       'player2SetScore',
+ 'player1GameScore', amt of games won
+'player2GameScore',
+       'player1PointScore',
+ 'player2PointScore', 
+'gameNumber', game number in the set, with first game being 1
+       'player1ServeResult', serveResult only if Player 1 is serving
+ 'player1ServePlacement', serve placement for only player 1 and if it is in, includes side and placement like "Duece: Body"
+'player1ReturnPlacement', return placement for only player 1
+       'player1ReturnFhBh', return forehand or backhand
+ 'player1LastShotPlacement', placement of last shot if hit by player 1
+'player1LastShotFhBh', forehand or backhand of last shot if it was hit by player 1
+       'player1LastShotResult', 
+'Name': Name of point in form "Set x: GameScore, PointScore Player 2 Serving"
+   
+
