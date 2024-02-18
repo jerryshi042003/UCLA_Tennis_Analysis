@@ -57,9 +57,11 @@ volley_distribution <- function(shotdata, player) {
     xlim(0, 10) +
     ylim(0, 10) +
     annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-    # Labels for Side
+    # Labels
     annotate("text", x=3.25, y=5, label= paste0("Ad"), cex = 4.5, fontface = 2, col = 'white') +
     annotate("text", x=6.875, y=5, label= paste0("Deuce"), cex = 4.5, fontface = 2, col = 'white') +
+    annotate("text", x=0.855, y=9, label= paste0("Count:"), cex = 4, fontface = 2, col = 'white') +
+    annotate("text", x=0.875, y=8.5, label= paste0("Win %:"), cex = 4, fontface = 2, col = 'white') +
     # Ad Down the Line
     annotate("text", x=2.5, y=8.5, label= paste0(df$Ad_DTL[1], "%"), cex = 4.5, fontface = 2, col = 'white') +
     annotate("text", x=2.5, y=9, label= paste0(df$Ad_DTL[2], " shots"), cex = 4.5, fontface = 2, col = 'white') +
