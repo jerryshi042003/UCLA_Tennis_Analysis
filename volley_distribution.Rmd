@@ -53,7 +53,7 @@ volley_distribution <- function(shotdata, player) {
     g <- rasterGrob(grid, width=unit(1,"npc"), height=unit(1,"npc"), interpolate = FALSE)
   
     ggplot() +
-    labs(title = paste("Serve Placement -", player), x = "", y = "") +
+    labs(title = paste("Volley Distribution -", player), x = "", y = "") +
     xlim(0, 10) +
     ylim(0, 10) +
     annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
@@ -85,9 +85,9 @@ volley_distribution <- function(shotdata, player) {
 ```
 
 ```{r}
-shotdata <- read.csv("GiacomoShot.csv")
-player <- "Giacomo Revelli"
-volley_distribution(shotdata, player)
+shotdata1 <- read.csv("GiacomoShot.csv")
+player1 <- "Giacomo Revelli"
+volley_distribution(shotdata1, player1)
 ```
 
 
