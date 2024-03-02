@@ -19,8 +19,7 @@ library(knitr)
 breakPoint <- function(match, playerName) {
   # Clean data for all break points for UCLA player
   View(match)
-  bpData <- match[((match$returnerName == playerName) & (match$isBreakPoint == TRUE)), ]
-  View(bpData)
+  bpData <- match[((match$returnerName == playerName) & (match$isBreakPoint == "True")), ]
   isSet1 <- bpData$setNum == 1
   isSet2 <- bpData$setNum == 2
   isSet3 <- bpData$setNum == 3
