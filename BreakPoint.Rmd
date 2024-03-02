@@ -1,0 +1,65 @@
+---
+title: "ErrorTableTemplate"
+author: "Tony Jeon"
+date: "2024-01-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Libraries
+```{r}
+library(knitr)
+```
+
+### Propotion of Break Points Won
+```{r}
+breakPoint <- function(match, playerName) {
+  # Clean data for all break points for UCLA player
+  View(match)
+  bpData <- match[((match$returnerName == playerName) & (match$isBreakPoint == TRUE)), ]
+  View(bpData)
+  isSet1 <- bpData$setNum == 1
+  isSet2 <- bpData$setNum == 2
+  isSet3 <- bpData$setNum == 3
+  bpData$breakPointWon <- bpData$pointWonBy == playerName
+  
+  
+  # Set 1
+  set1Data <- bpData[isSet1, ]
+  set1_DF <- data.frame(sum(set1Data$breakPointWon), paste0(as.character(round(sum(set1Data$breakPointWon) / nrow(set1Data) * 100, 2)), "%"))
+  colnames(set1_DF) <- c("Break Points Won", "Break Point Win Percentage")
+  
+  # Set 2
+  set2Data <- bpData[isSet2, ]
+  set2_DF <- data.frame(sum(set2Data$breakPointWon), paste0(as.character(round(sum(set2Data$breakPointWon) / nrow(set2Data) * 100, 2)), "%"))
+  colnames(set2_DF) <- c("Break Points Won", "Break Point Win Percentage")
+  bpDF <- rbind(set1_DF, set2_DF)
+  rownames(bpDF) <- c("Set 1", "Set 2")
+  
+    # Set 3 
+  if (any(isSet3)) {
+    set3Data <- bpData[isSet3, ]
+    set3_DF <- data.frame(sum(set3Data$breakPointWon), paste0(as.character(round(sum(set3Data$breakPointWon) / nrow(set3Data) * 100, 2)), "%"))
+    colnames(set3_DF) <- c("Break Points Won", "Break Point Win Percentage")
+    rownames(set3_DF) <- "Set 3"
+    bpDF <- rbind(bpDF, set3_DF)
+  }
+  
+  # Full Match
+  total_DF <- data.frame(sum(bpData$breakPointWon), paste0(as.character(round(sum(bpData$breakPointWon) / nrow(bpData) * 100, 2)), "%"))
+  colnames(total_DF) <- c("Break Points Won", "Break Point Win Percentage")
+  rownames(total_DF) <- "Full Match"
+  bpDF <- rbind(bpDF, total_DF)
+  kable(bpDF, align = "ccc")
+}
+```
+
+
+```{r}
+matchdata <- read.csv("SpencerVsAlessioPoint.csv", header = TRUE)
+mode(matchdata$setNum)
+breakPoint(matchdata, "Spencer Johnson")
+```
