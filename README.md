@@ -3,7 +3,6 @@
 R/Python code used for visualizations in match reports.
 
 tennis_tables.Rmd
-- Quick Statistics Table (quick_stats.Rmd)
 - Error Table (ErrorTableTemplate.Rmd)
 - Break Point Table (BreakPoint.Rmd)
 - Approach Shot Table (approach_shots.Rmd)
@@ -15,7 +14,6 @@ tennis_visualization.Rmd
 
 tennis_tables.ipynb
 - Return Table (Serve Return Statistics.ipynb)
-- Return Error Table (Return Error Statistics.ipynb)
 - Winner Table (Winners.ipynb)
 - Net Percentages Table (Net percentages.ipynb)
 - Crosscourt/Down the Line Table (cross_down_%.ipynb)
