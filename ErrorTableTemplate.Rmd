@@ -1,0 +1,59 @@
+---
+title: "ErrorTableTemplate"
+author: "Tony Jeon"
+date: "2024-01-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Libraries
+```{r}
+library(knitr)
+library(kableExtra)
+```
+
+### Proportion of Errors for Forehand/Backhand
+```{r}
+errorPropTable <- function(match, playerName) {
+    # Forehand
+  fore <- match[((match$pointWonBy != playerName) & (match$errorType != "") & (match$player1LastShotFhBh == "Forehand")), ]
+  isWide <- fore$errorType == "Wide Right" | fore$errorType == "Wide Left" 
+  isLong <- fore$errorType == "Long" 
+  isNet <- fore$errorType == "Net" 
+  fore$errorType[isNet] <- "Net"
+  fore$errorType[isLong] <- "Long"
+  fore$errorType[isWide] <- "Wide"
+  errorTypeNames <- c("Net", "Wide", "Long")
+  fore$errorType <- factor(fore$errorType, levels = errorTypeNames)
+  
+  # Backhand
+  back <- match[((match$pointWonBy!= playerName) & (match$errorType != "") & (match$player1LastShotFhBh == "Backhand")), ]
+  isWide <- back$errorType == "Wide Right" | back$errorType == "Wide Left" 
+  isLong <- back$errorType == "Long" 
+  isNet <- back$errorType == "Net" 
+  back$errorType[isNet] <- "Net"
+  back$errorType[isLong] <- "Long"
+  back$errorType[isWide] <- "Wide"
+  back$errorType <- factor(back$errorType, levels = errorTypeNames)
+  
+  # Creating Tables
+  foreCountTable <- round(table(fore$errorType), 0)
+  forePropTable <- paste0(as.character(round(table(fore$errorType) / nrow(fore) * 100, 2)), "%")
+  backCountTable <- round(table(back$errorType), 0)
+  backPropTable <- paste0(as.character(round(table(back$errorType) / nrow(back) * 100, 2)), "%")
+  table <- rbind(foreCountTable, backCountTable, forePropTable, backPropTable)
+  rownames(table)
+  rownames(table) <- c("Forehand: Error Count", "Backhand: Error Count", "Forehand: Error Percentage", "Backhand: Error Percentage")
+  kable(table, align = "ccc")
+}
+```
+
+
+```{r}
+matchData <- read.csv("SpencerVsAlessioPoint.csv", header = TRUE)
+errorPropTable(matchData, "Spencer Johnson")
+```
+
