@@ -6,6 +6,7 @@ tennis_tables.Rmd
 - Error Table (ErrorTableTemplate.Rmd)
 - Break Point Table (BreakPoint.Rmd)
 - Approach Shot Table (approach_shots.Rmd)
+- Return on Serves Table (tables.R)
 
 tennis_visualization.Rmd
 - Summary Statistics Visual (general_stats.Rmd)
