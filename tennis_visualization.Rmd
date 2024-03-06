@@ -21,21 +21,24 @@ library(zoo)
 
 # Loading in Data
 ```{r}
-shotdata <- read.csv("SpencerJohnson_AlessioBasile_Shot.csv")
-pointdata <- read.csv("Point_Visuals_SpencerJohnson_AlessioBasile.csv")
-player1 <- "Spencer Johnson"
-player2 <- "Alessio Basile"
+pointdata <- read.csv("C:/Users/jerry/Documents/Ucla/BSA/CSV shot to Point/R Code/GovindNanda_TylerZink_Point_ForVisuals.csv")
+shotdata <- read.csv("C:/Users/jerry/Documents/Ucla/BSA/CSV shot to Point/R Code/GovindNanda_TylerZink_Shot.csv")
 
-grid1 <- readPNG("serve_placement_court_new.png")
-grid2 <- readPNG("Court_Image_Volleys.png")
+# Assuming pointdata is a data frame or list containing player names
+player1 <- pointdata$player1Name[1]
+player2 <- pointdata$player2Name[1]
+
+
+grid1 <- readPNG("C:/Users/jerry/Documents/Ucla/BSA/CSV shot to Point/R Code/serve_placement_court_new.png")
+grid2 <- readPNG("C:/Users/jerry/Documents/Ucla/BSA/CSV shot to Point/R Code/Court_Image_Volleys.png")
 ```
 
 # Summary Stats
 ```{r}
-col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve Won %", "Ace %",
-               "Double Fault %", "Service Points Won %", "Return Points Won %")
+col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve Won %", "Service Points Won %", "Return Points Won %", "Ace (Count)",
+               "Double Fault (Count)")
 
-percent_table <- function(shotdata, pointdata, player){
+percent_table <- function(pointdata, player){
   serveIn <- pointdata %>% 
     filter(serverName == player) %>% 
     summarise("firstServeInPercent" = (length(which((serveResult == "1st Serve In"))) / 
@@ -51,14 +54,7 @@ percent_table <- function(shotdata, pointdata, player){
     filter(serverName == player & serveResult == "2nd Serve In") %>% 
     summarise("secondServeWonPercent" = (length(which(pointWonBy == player)) / length(pointWonBy))*100)
 
-  aceDoubleFault <- shotdata %>% 
-    filter(serverName == player) %>%
-    summarise("acePercent" = ((length(which((firstServeIn == 1 | secondServeIn == 1) & isPointStart == 1 & 
-                                              isPointEnd == 1))) / 
-                (length(which(firstServeIn == 1 | firstServeIn == 0)))*100),
-              "doubleFaultPercent" = ((length(which(firstServeIn != 1 & secondServeIn != 1
-                                                    & isPointStart == 1 & isPointEnd == 1))) /
-                (length(which(firstServeIn == 1 | firstServeIn == 0)))*100))
+ 
 
   servicePointsWon <- pointdata %>% 
     filter(serverName == player) %>% 
@@ -69,16 +65,22 @@ percent_table <- function(shotdata, pointdata, player){
     filter(serverName != player) %>% 
     summarise("returnPointsWonPercent" = ((length(which(pointWonBy == player))) /
                 (length(which(serverName != player))))*100)
+  
+    aceDoubleFault <- pointdata %>% 
+    filter(serverName == player) %>%
+    summarise("aceCount" = sum(isAce == "True" |isAce == "True" |isAce == TRUE, na.rm = TRUE),
+              "doubleFaultCount" = sum(serveResult == "Double Fault", na.rm = TRUE))
+
 
   temp_df <- data.frame(serveIn, firstServeWon, secondServeWon, 
-                        aceDoubleFault, servicePointsWon, returnPointsWon)
+                         servicePointsWon, returnPointsWon, aceDoubleFault)
 
   data <- data.frame("Stat" = col_names, 
                      "Percent" = round(as.numeric(unlist(temp_df[1,])), digits = 1))
   
   data$Stat <- factor(data$Stat, levels = c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", 
-                                            "2nd Serve Won %", "Ace %", "Double Fault %", 
-                                            "Service Points Won %", "Return Points Won %"))
+                                            "2nd Serve Won %", "Service Points Won %", "Return Points Won %",
+                                            "Ace (Count)","Double Fault (Count)"))
   
   data
 }
@@ -107,8 +109,8 @@ sum_plot <- function(data){
     scale_x_discrete(limits = rev(levels(data$Stat)))
 }
 
-percentA <- data.frame(Server = player1, percent_table(shotdata, pointdata, player1))
-percentB <- data.frame(Server = player2, percent_table(shotdata, pointdata, player2))
+percentA <- data.frame(Server = player1, percent_table(pointdata, player1))
+percentB <- data.frame(Server = player2, percent_table(pointdata, player2))
 percent_df <- rbind(percentA, percentB)
 p1 <- sum_plot(percent_df)
 p2 <- p1 + scale_y_reverse()
@@ -118,6 +120,9 @@ g1$grobs[grep("panel-1-1", g1$layout$name)] <- g2$grobs[grep("panel-1-1", g2$lay
 g1$grobs[grep('axis-b-1', g1$layout$name)] <- g2$grobs[grep('axis-b-2', g2$layout$name)]
 grid.newpage(); grid.draw(g1) # if you can't see the percents, try running this line in the console
 ```
+
+
+
 
 # Serve Placement
 ```{r}
@@ -159,6 +164,8 @@ serve_placement <- function(pointdata, player){
   g <- rasterGrob(grid1, width=unit(1,"npc"), height=unit(1,"npc"), interpolate = FALSE)
   
   ggplot(df) +
+  
+
     annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
     annotate("rect", 
              xmin=c(0,1,2,3.05,4,5), 
