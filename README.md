@@ -20,6 +20,9 @@ tennis_tables.ipynb
 - Crosscourt/Down the Line Table (cross_down_%.ipynb)
 
 tennis_visualization.ipynb
+- ![summary stats](https://github.com/shiyu-m/UCLA_Tennis_Analysis/assets/79689407/2f4425fe-ebab-4e6c-b78f-4bb3d605430d)
+- ![serve placement](https://github.com/shiyu-m/UCLA_Tennis_Analysis/assets/79689407/5e1a3ff2-ff01-4187-bef4-3b28d38317b8)
+
 - In Progress...
 
 tennis_dashboard.ipynb
