@@ -37,10 +37,10 @@ grid2 <- readPNG("Court_Image_Volleys.png")
 col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve Won %", "Service Points Won %", 
                "Return Points Won %", "Ace (Count)", "Double Fault (Count)")
 
-server_order <- unique(pointdata$serverName)
-pointdata$serverName <- factor(pointdata$serverName, levels = server_order)
-
 percent_table <- function(pointdata, player){
+  server_order <- unique(pointdata$serverName)
+  pointdata$serverName <- factor(pointdata$serverName, levels = server_order)
+  
   serveIn <- pointdata %>% 
     filter(serverName == player) %>% 
     summarise("firstServeInPercent" = (length(which((serveResult == "1st Serve In"))) / 
