@@ -351,16 +351,5 @@ volley_distribution(shotdata, player1)
 #   theme_minimal()
 ```
 
-```{r}
-doubles_ex <- read.csv("Timothy_Giac vs. Columbia 0_00 - 9_38 - Sheet1.csv")
-
-library(zoo)
-doubles_ex$serverName[doubles_ex$serverName == ""] <- NA
-doubles_ex$serverName <- na.locf(doubles_ex$serverName)
-
-serve_placement(doubles_ex, player = "Timothy Li")
-```
-
-
 
 
