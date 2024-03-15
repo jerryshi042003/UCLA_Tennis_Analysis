@@ -21,8 +21,8 @@ library(zoo)
 
 # Loading in Data
 ```{r}
-pointdata <- read.csv("Point_Visuals_SpencerJohnson_L.CarlssonHalldin.csv")
-shotdata <- read.csv("Shot_Visuals_SpencerJohnson_L.CarlssonHalldin.csv")
+pointdata <- read.csv("GovindNanda_TylerZink_Point_ForVisuals.csv")
+shotdata <- read.csv("GovindNanda_TylerZink_Shot.csv")
 
 # Assuming pointdata is a data frame or list containing player names
 player1 <- pointdata$player1Name[1]
@@ -38,7 +38,8 @@ col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve
                "Return Points Won %", "Ace (Count)", "Double Fault (Count)")
 
 percent_table <- function(pointdata, player){
-
+  server_order <- unique(pointdata$serverName)
+  pointdata$serverName <- factor(pointdata$serverName, levels = server_order)
   
   serveIn <- pointdata %>% 
     filter(serverName == player) %>% 
@@ -84,10 +85,6 @@ percent_table <- function(pointdata, player){
 }
 
 sum_plot <- function(data){
-  
-  server_order <- unique(data$Server)
-  data$Server <- factor(data$Server, levels = server_order)
-  
   ggplot(data, aes(Stat, Percent)) +
     geom_bar(stat = "identity", aes(fill = Server), position = "dodge") +
     geom_label(aes(label = Percent), colour = "black", cex = 5) +
@@ -246,34 +243,33 @@ shot_merged <- merge(shotdata, example_df, by='pointNumber')
 
 # Volley Distribution Function
 volley_distribution <- function(shotdata, player) {
-  
-    ad_volley_win <- shot_merged %>% 
-                     filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>% 
-                     summarise("Type" = "Win Percentage",
-                               "Ad_DTL" = round(((length(which((shotDirection == "Down the Line"  & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Down the Line"))))*100),
-                               "Ad_CC" = round(((length(which((shotDirection == "Crosscourt"  & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Crosscourt"))))*100))
+    ad_volley_win <- shot_merged %>%
+      filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>%
+      summarise("Type" = "Win Percentage",
+                "Ad_DTL" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Down the Line")])) /
+                                   length(unique(pointNumber[shotDirection == "Down the Line"])) * 100),
+                "Ad_CC" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Crosscourt")])) / 
+                                  length(unique(pointNumber[shotDirection == "Crosscourt"])) * 100)) 
     
-    deuce_volley_win <- shot_merged %>% 
-                        filter(isVolley == 1 & shotHitBy == player & side == "Deuce") %>% 
-                        summarise("Type" = "Win Percent Percentage",
-                               "Deuce_DTL" = round(((length(which((shotDirection == "Down the Line" & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Down the Line"))))*100),
-                               "Deuce_CC" = round(((length(which((shotDirection == "Crosscourt" & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Crosscourt"))))*100))
+    deuce_volley_win <- shot_merged %>%
+      filter(isVolley == 1 & shotHitBy == player & side == "Deuce") %>%
+      summarise("Type" = "Win Percentage",
+                "Deuce_DTL" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Down the Line")])) /
+                                      length(unique(pointNumber[shotDirection == "Down the Line"])) * 100),
+                "Deuce_CC" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Crosscourt")])) / 
+                                     length(unique(pointNumber[shotDirection == "Crosscourt"])) * 100)) 
     
     ad_volley_count <- shot_merged %>% 
-                       filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>% 
-                       summarise("Type" = "Count",
-                                 "Ad_DTL" = round((length(which(shotDirection == "Down the Line")))),
-                                 "Ad_CC" = round((length(which(shotDirection == "Crosscourt")))))
+      filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>% 
+      summarise("Type" = "Count",
+                "Ad_DTL" = round((length(which(shotDirection == "Down the Line")))),
+                "Ad_CC" = round((length(which(shotDirection == "Crosscourt")))))
 
     deuce_volley_count <- shot_merged %>% 
-                          filter(isVolley == 1 & shotHitBy == player & side == "Deuce") %>% 
-                       summarise("Type" = "Count",
-                                 "Deuce_DTL" = round((length(which(shotDirection == "Down the Line")))),
-                                 "Deuce_CC" = round((length(which(shotDirection == "Crosscourt")))))
+      filter(isVolley == 1 & shotHitBy == player & side == "Deuce") %>% 
+      summarise("Type" = "Count",
+                "Deuce_DTL" = round((length(which(shotDirection == "Down the Line")))),
+                "Deuce_CC" = round((length(which(shotDirection == "Crosscourt")))))
     
     df <- rbind(cbind(ad_volley_win, deuce_volley_win), cbind(ad_volley_count, deuce_volley_count))
     winPercentVec <- c(df$Ad_DTL[1], df$Ad_CC[1], df$Deuce_DTL[1], df$Deuce_CC[1])
@@ -284,52 +280,52 @@ volley_distribution <- function(shotdata, player) {
     g <- rasterGrob(grid2, width=unit(1,"npc"), height=unit(1,"npc"), interpolate = FALSE)
   
     ggplot() +
-    labs(title = paste("Volley Distribution -", player), x = "", y = "") +
-    xlim(0, 10) +
-    ylim(0, 10) +
-    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
-    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-          axis.title.x = element_blank(), axis.title.y = element_blank(),
-          plot.title = element_text(hjust = 0.5, face = "bold")) +
-      
-    # Labels
-    annotate("text", x=3.2, y=0.25, label= paste0("Ad"), cex = 4.5, fontface = 2, col = 'white', family = "Tahoma") +
-    annotate("text", x=6.8, y=0.25, label= paste0("Deuce"), cex = 4.5, fontface = 2, col = 'white', family = "Tahoma") +
-    annotate("text", x=0.9, y=4.95, label= paste0("Net"), cex = 4.5, fontface = 2, col = 'white', family = "Tahoma") +
-    # Ad Down the Line
-    annotate("text", x=2.5, y=7.9, label= paste0(df$Ad_DTL[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
-    annotate("text", x=2.5, y=8.35, label= paste0(df$Ad_DTL[1], "% Won"), cex = 4, fontface = 2, 
-             col = ifelse(df$Ad_DTL[1] == max_winPercent, 'green', ifelse(df$Ad_DTL[1] == min_winPercent, 'red', 'white')), 
-             family = "Tahoma") +
-    annotate("text", x=2.5, y=8.75, label= paste0("Down the Line"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
-    # Ad Crosscourt
-    annotate("text", x=5.9, y=7.9, label= paste0(df$Ad_CC[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
-    annotate("text", x=5.9, y=8.35, label= paste0(df$Ad_CC[1], "% Won"), cex = 4, fontface = 2, 
-             col = ifelse(df$Ad_CC[1] == max_winPercent, 'green', ifelse(df$Ad_CC[1] == min_winPercent, 'red', 'white')), 
-             family = "Tahoma") +
-    annotate("text", x=5.9, y=8.75, label= paste0("Crosscourt"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
-    # Deuce Crosscourt
-    annotate("text", x=4.1, y=7.9, label= paste0(df$Deuce_CC[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
-    annotate("text", x=4.1, y=8.35, label= paste0(df$Deuce_CC[1], "% Won"), cex = 4, fontface = 2, 
-             col = ifelse(df$Deuce_CC[1] == max_winPercent, 'green', ifelse(df$Deuce_CC[1] == min_winPercent, 'red', 'white')), 
-             family = "Tahoma") +
-    annotate("text", x=4.1, y=8.75, label= paste0("Crosscourt"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
-    # Deuce Down the Line
-    annotate("text", x=7.5, y=7.9, label= paste0(df$Deuce_DTL[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
-    annotate("text", x=7.5, y=8.35, label= paste0(df$Deuce_DTL[1], "% Won"), cex = 4, fontface = 2, 
-             col = ifelse(df$Deuce_DTL[1] == max_winPercent, 'green', ifelse(df$Deuce_DTL[1] == min_winPercent, 'red', 'white')), 
-             family = "Tahoma") +
-    annotate("text", x=7.5, y=8.75, label= paste0("Down the Line"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
-    # Arrows
-    annotate("segment", x = 2.5, y = 0.6, xend = 2.5, yend = 7.5, cex = 1.5, color = 'white', 
-             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
-    annotate("segment", x = 2.5, y = 0.6, xend = 5.9, yend = 7.5, cex = 1.5, color = 'white', 
-             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
-    annotate("segment", x = 7.5, y = 0.6, xend = 4.1, yend = 7.5, cex = 1.5, color = 'white', 
-             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
-    annotate("segment", x = 7.5, y = 0.6, xend = 7.5, yend = 7.5, cex = 1.5, color = 'white', 
-             arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
+      labs(title = paste("Volley Distribution -", player), x = "", y = "") +
+      xlim(0, 10) +
+      ylim(0, 10) +
+      annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+      theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+            axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+            axis.title.x = element_blank(), axis.title.y = element_blank(),
+            plot.title = element_text(hjust = 0.5, face = "bold")) +
+        
+      # Labels
+      annotate("text", x=3.2, y=0.25, label= paste0("Ad"), cex = 4.5, fontface = 2, col = 'white', family = "Tahoma") +
+      annotate("text", x=6.8, y=0.25, label= paste0("Deuce"), cex = 4.5, fontface = 2, col = 'white', family = "Tahoma") +
+      annotate("text", x=0.9, y=4.95, label= paste0("Net"), cex = 4.5, fontface = 2, col = 'white', family = "Tahoma") +
+      # Ad Down the Line
+      annotate("text", x=2.5, y=7.9, label= paste0(df$Ad_DTL[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+      annotate("text", x=2.5, y=8.35, label= paste0(df$Ad_DTL[1], "% Won"), cex = 4, fontface = 2, 
+               col = ifelse(df$Ad_DTL[1] == max_winPercent, 'green', ifelse(df$Ad_DTL[1] == min_winPercent, 'red', 'white')), 
+               family = "Tahoma") +
+      annotate("text", x=2.5, y=8.75, label= paste0("Down the Line"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
+      # Ad Crosscourt
+      annotate("text", x=5.9, y=7.9, label= paste0(df$Ad_CC[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+      annotate("text", x=5.9, y=8.35, label= paste0(df$Ad_CC[1], "% Won"), cex = 4, fontface = 2, 
+               col = ifelse(df$Ad_CC[1] == max_winPercent, 'green', ifelse(df$Ad_CC[1] == min_winPercent, 'red', 'white')), 
+               family = "Tahoma") +
+      annotate("text", x=5.9, y=8.75, label= paste0("Crosscourt"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
+      # Deuce Crosscourt
+      annotate("text", x=4.1, y=7.9, label= paste0(df$Deuce_CC[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+      annotate("text", x=4.1, y=8.35, label= paste0(df$Deuce_CC[1], "% Won"), cex = 4, fontface = 2, 
+               col = ifelse(df$Deuce_CC[1] == max_winPercent, 'green', ifelse(df$Deuce_CC[1] == min_winPercent, 'red', 'white')), 
+               family = "Tahoma") +
+      annotate("text", x=4.1, y=8.75, label= paste0("Crosscourt"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
+      # Deuce Down the Line
+      annotate("text", x=7.5, y=7.9, label= paste0(df$Deuce_DTL[2], " shots"), cex = 5.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+      annotate("text", x=7.5, y=8.35, label= paste0(df$Deuce_DTL[1], "% Won"), cex = 4, fontface = 2, 
+               col = ifelse(df$Deuce_DTL[1] == max_winPercent, 'green', ifelse(df$Deuce_DTL[1] == min_winPercent, 'red', 'white')), 
+               family = "Tahoma") +
+      annotate("text", x=7.5, y=8.75, label= paste0("Down the Line"), cex = 3.5, fontface = 2, col = 'white', family = "Tahoma") +
+      # Arrows
+      annotate("segment", x = 2.5, y = 0.6, xend = 2.5, yend = 7.5, cex = 1.5, color = 'white', 
+               arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+      annotate("segment", x = 2.5, y = 0.6, xend = 5.9, yend = 7.5, cex = 1.5, color = 'white', 
+               arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+      annotate("segment", x = 7.5, y = 0.6, xend = 4.1, yend = 7.5, cex = 1.5, color = 'white', 
+               arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+      annotate("segment", x = 7.5, y = 0.6, xend = 7.5, yend = 7.5, cex = 1.5, color = 'white', 
+               arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
 }
 
 volley_distribution(shotdata, player1)
@@ -354,3 +350,17 @@ volley_distribution(shotdata, player1)
 #   facet_grid(~setNum, scales='free') +
 #   theme_minimal()
 ```
+
+```{r}
+doubles_ex <- read.csv("Timothy_Giac vs. Columbia 0_00 - 9_38 - Sheet1.csv")
+
+library(zoo)
+doubles_ex$serverName[doubles_ex$serverName == ""] <- NA
+doubles_ex$serverName <- na.locf(doubles_ex$serverName)
+
+serve_placement(doubles_ex, player = "Timothy Li")
+```
+
+
+
+
