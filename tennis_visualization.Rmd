@@ -21,8 +21,8 @@ library(zoo)
 
 # Loading in Data
 ```{r}
-pointdata <- read.csv("GovindNanda_TylerZink_Point_ForVisuals.csv")
-shotdata <- read.csv("GovindNanda_TylerZink_Shot.csv")
+pointdata <- read.csv("Point_Visuals_SpencerJohnson_L.CarlssonHalldin.csv")
+shotdata <- read.csv("Shot_Visuals_SpencerJohnson_L.CarlssonHalldin.csv")
 
 # Assuming pointdata is a data frame or list containing player names
 player1 <- pointdata$player1Name[1]
@@ -38,8 +38,7 @@ col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve
                "Return Points Won %", "Ace (Count)", "Double Fault (Count)")
 
 percent_table <- function(pointdata, player){
-  server_order <- unique(pointdata$serverName)
-  pointdata$serverName <- factor(pointdata$serverName, levels = server_order)
+
   
   serveIn <- pointdata %>% 
     filter(serverName == player) %>% 
@@ -85,6 +84,10 @@ percent_table <- function(pointdata, player){
 }
 
 sum_plot <- function(data){
+  
+  server_order <- unique(data$Server)
+  data$Server <- factor(data$Server, levels = server_order)
+  
   ggplot(data, aes(Stat, Percent)) +
     geom_bar(stat = "identity", aes(fill = Server), position = "dodge") +
     geom_label(aes(label = Percent), colour = "black", cex = 5) +
