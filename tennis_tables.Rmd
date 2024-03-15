@@ -11,6 +11,19 @@ library(dplyr)
 library(ggplot2)
 library(gt)
 library(scales)
+
+library(png)
+library(readr)
+library(dplyr)
+library(grid)
+library(ggplot2)
+library(ggpubr)
+library(ggtext)
+library(reshape)
+library(reshape2)
+library(zoo)
+
+library(ti)
 ```
 
 # Loading in Data
@@ -156,7 +169,7 @@ approach_plot <- function(data){
   data$Category <- c(rep("Approach Win", 4), rep("Forehand vs Backhand", 4), rep("Forehand", 2), rep("Backhand", 2))
   
   ggplot(data[9:12,], aes(x = Category, y = Percent, fill = Stat)) + 
-    geom_bar(position="stack", stat="identity") +
+    geom_bar(position="stack", stat="identity", alpha = 0.7) +
     geom_text(aes(label = Percent), position = position_stack(vjust = 0.5), cex = 6) +
     geom_text(aes(label = Stat), position = position_stack(vjust = 0.5), vjust = 3) +
     scale_fill_manual(values = c("#2D68C4", "#F2A900", "#2D68C4", "#F2A900")) +
@@ -407,3 +420,269 @@ gt_tbl <- tab_spanner(gt_tbl,label = md('**Wide Serves**'),columns = 6:7)
 # Show the gt Table
 gt_tbl
 ```
+
+# Return Error Table
+```{r}
+shotdata$returnData <- rep(NA, nrow(shotdata))
+
+# Fill NA values in 'side' column
+for(i in 1:(dim(shotdata)[1] - 1)) {
+  if(shotdata$side[i] == 'Deuce' && shotdata$side[i + 1] == '') {
+    shotdata$side[i + 1] = 'Deuce'
+  } else if(shotdata$side[i] == 'Ad' && shotdata$side[i + 1] == '') {
+    shotdata$side[i + 1] = 'Ad'
+  }
+}
+
+# For the 'firstServeIn' and 'secondServeIn' columns, you may want to use mutate combined with ifelse
+shotdata <- shotdata %>%
+  mutate(secondServeIn = if_else(firstServeIn == 1, 0, secondServeIn))
+
+# Fill NA values for 'firstServeIn' and 'secondServeIn' columns
+shotdata <- tidyr::fill(shotdata, firstServeIn, .direction = "down")
+shotdata <- tidyr::fill(shotdata, secondServeIn, .direction = "down")
+
+# Initialize the 'winner' column with NA values
+shotdata$winner <- rep(NA, nrow(shotdata))
+
+# Extract player names (assuming these are constants for the dataset)
+player_1 <- shotdata$player1Name[1]
+player_2 <- shotdata$player2Name[1]
+
+# Iterate through the rows to determine the winner of each point
+for(i in 1:nrow(shotdata)) {
+  if(shotdata$isPointEnd[i] == 1 && !is.na(shotdata$isPointEnd[i])) {
+    if(shotdata$shotHitBy[i] == player_1) {
+      if(shotdata$isWinner[i] == 1 && !is.na(shotdata$winner[i])) {
+        shotdata$winner[i] <- player_1
+      } else {
+        shotdata$winner[i] <- player_2
+      }
+    } else {
+      if(shotdata$isWinner[i] == 1 && !is.na(shotdata$winner[i])) {
+        shotdata$winner[i] <- player_2
+      } else {
+        shotdata$winner[i] <- player_1
+      }
+    }
+  }
+}
+
+shotType <- NA
+
+# Iterate over the rows of the data frame
+for (i in 1:nrow(shotdata)) {
+  # Check if the rally shot is the second shot and set the shot type
+  if (shotdata$shotInRally[i] == 2) {
+    if (shotdata$shotFhBh[i] == 'Forehand') {
+      shotType <- 'Forehand'
+    } else {
+      shotType <- 'Backhand'
+    }
+  }
+  
+  # If the point has ended, assign the shot type to the 'returnData' column and reset shotType
+  if (shotdata$isPointEnd[i] == 1 && !is.na(shotdata$isPointEnd[i])) {
+    shotdata$returnData[i] <- shotType
+    shotType <- NA
+  }
+}
+
+
+isError <- rep(NA, nrow(shotdata))
+
+# Loop through the dataframe
+for (i in 1:nrow(shotdata)) {
+  if (shotdata$shotInRally[i] == 2) {
+    if (!is.na(shotdata$isErrorWideR[i]) && shotdata$isErrorWideR[i] == 1) {
+      isError[i] <- 'Wide R'
+    }
+    if (!is.na(shotdata$isErrorWideL[i]) && shotdata$isErrorWideL[i] == 1) {
+      isError[i] <- 'Wide L'
+    }
+    if (!is.na(shotdata$isErrorNet[i]) && shotdata$isErrorNet[i] == 1) {
+      isError[i] <- "Net"
+    }
+    if (!is.na(shotdata$isErrorLong[i]) && shotdata$isErrorLong[i] == 1) {
+      isError[i] <- "Long"
+    }
+  }
+}
+
+# Add the isError vector as a new column to the dataframe
+shotdata$isError <- isError
+
+data_filtered <- shotdata[, c('pointScore', 'isPointEnd', 'shotInRally', 'side', 'serverName', 'firstServeIn', 
+                          'secondServeIn', 'returnData', 'returnerName', 'winner', 'isError')]
+
+# Filter rows where 'isPointEnd' is 1 and 'returnData' is either 'Forehand' or 'Backhand'
+data_filtered <- subset(data_filtered, isPointEnd == 1 & returnData %in% c('Forehand', 'Backhand') & shotInRally == 2)
+
+player_1_data = data_filtered[data_filtered['returnerName'] == player_1, ]
+player_2_data = data_filtered[data_filtered['returnerName'] == player_2, ]
+
+player_1_first_errors <- player_1_data[player_1_data['firstServeIn'] == 1, ]
+player_1_second_errors <- player_1_data[player_1_data['firstServeIn'] == 0, ]
+player_2_first_errors <- player_2_data[player_2_data['firstServeIn'] == 1, ]
+player_2_second_errors <- player_2_data[player_2_data['firstServeIn'] == 0, ]
+
+player_1_total_serve_returns_first <- shotdata[(shotdata['returnerName'] == player_1) & 
+                                             (shotdata['firstServeIn'] == 1) & 
+                                             (!is.na(shotdata['isPointStart']) & shotdata['isPointStart'] == 1), ]
+player_1_total_serve_returns_second <- shotdata[(shotdata['returnerName'] == player_1) & 
+                                              (shotdata['secondServeIn'] == 1) & 
+                                              (!is.na(shotdata['isPointStart']) & shotdata['isPointStart'] == 1), ]
+player_2_total_serve_returns_first <- shotdata[(shotdata['returnerName'] == player_2) & 
+                                             (shotdata['firstServeIn'] == 1) & 
+                                             (!is.na(shotdata['isPointStart']) & shotdata['isPointStart'] == 1), ]
+player_2_total_serve_returns_second <- shotdata[(shotdata['returnerName'] == player_2) & 
+                                              (shotdata['secondServeIn'] == 1) & 
+                                              (!is.na(shotdata['isPointStart']) & shotdata['isPointStart'] == 1), ]
+
+string_11 <- paste(nrow(player_1_first_errors), '/', nrow(player_1_total_serve_returns_first), sep="")
+string_12 <- paste(nrow(player_1_second_errors), '/', nrow(player_1_total_serve_returns_second), sep="")
+string_21 <- paste(nrow(player_2_first_errors), '/', nrow(player_2_total_serve_returns_first), sep="")
+string_22 <- paste(nrow(player_2_second_errors), '/', nrow(player_2_total_serve_returns_second), sep="")
+
+prop_stats <- function(x, y) {
+  if(y == 0 || x == 0){
+    return(0)
+  } else {
+    return(round(x / y * 100, 2))
+  }
+}
+
+prop_11 <- prop_stats(nrow(player_1_first_errors), nrow(player_1_total_serve_returns_first))
+prop_12 <- prop_stats(nrow(player_1_second_errors), nrow(player_1_total_serve_returns_second))
+prop_21 <- prop_stats(nrow(player_2_first_errors), nrow(player_2_total_serve_returns_first))
+prop_22 <- prop_stats(nrow(player_2_second_errors), nrow(player_2_total_serve_returns_second))
+
+plot_data <- data.frame(player = c(player_1, player_2),
+                        'First Return Error Percent' = c(prop_11, prop_21),
+                        'Second Return Error Percent' = c(prop_12, prop_22),
+                        error_prop_first = c(paste0(prop_11, '% ', '(', string_11, ')'), paste0(prop_21, '% ', '(', string_21, ')')),
+                        error_prop_second = c(paste0(prop_12, '% ', '(', string_12, ')'), paste0(prop_22, '% ', '(', string_22, ')')))
+```
+
+```{r}
+# Reshape data to long format
+df_long <- plot_data %>% 
+  pivot_longer(cols = c("First.Return.Error.Percent", "Second.Return.Error.Percent"),
+               names_to = "serve", 
+               values_to = "errorPercent") %>%
+  mutate(label = if_else(grepl("First", serve), error_prop_first, error_prop_second))
+
+df_long$serve <- factor(df_long$serve, labels = c("First Return Error Percent", "Second Return Error Percent"))
+
+# Plot
+ggplot(df_long, aes(x = player, y = errorPercent, fill = serve)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), alpha = 0.7) +
+  geom_text(aes(label = label),
+            position = position_dodge(width = 0.9), vjust = -0.25,
+            size = 3.3) +
+  scale_fill_manual(
+    values = c("First Return Error Percent" = "#2D68C4", "Second Return Error Percent" = "#F2A900"),
+    labels = c("First Return Error", "Second Return Error") # Update labels if needed
+  ) +
+  theme_minimal() +
+  labs(title = "Error Percent by Serve Type",
+       x = "Player",
+       y = "Error Percent (%)",
+       fill = "Serve Type") +
+  theme(legend.title = element_blank())
+```
+
+Final Visualization 
+
+```{r}
+player_1_errors <- player_1_data[player_1_data$firstServeIn == 1 || player_1_data$secondServeIn,]
+player_2_errors <- player_2_data[player_2_data$firstServeIn == 1 || player_2_data$secondServeIn,]
+
+player_1_errors_ad <- player_1_errors[player_1_errors['side'] == 'Ad', ]
+player_1_errors_deuce <- player_1_errors[player_1_errors['side'] == 'Deuce', ]
+player_2_errors_ad <- player_2_errors[player_2_errors['side'] == 'Ad', ]
+player_2_errors_deuce <- player_2_errors[player_2_errors['side'] == 'Deuce', ]
+
+player_1_total_serve_returns_ad <- shotdata[(shotdata['side'] == 'Ad') &
+                                                   (shotdata['returnerName'] == player_1) &
+                                          (shotdata['shotInRally'] == 2), ]
+player_1_total_serve_returns_deuce <- shotdata[shotdata['side'] == 'Deuce' &
+                                                   (shotdata['returnerName'] == player_1) &
+                                          (shotdata['shotInRally'] == 2), ]
+player_2_total_serve_returns_ad <- shotdata[shotdata['side'] == 'Ad' &
+                                                   (shotdata['returnerName'] == player_2) &
+                                          (shotdata['shotInRally'] == 2), ]
+player_2_total_serve_returns_deuce <- shotdata[shotdata['side'] == 'Deuce' &
+                                                   (shotdata['returnerName'] == player_2) &
+                                          (shotdata['shotInRally'] == 2), ]
+
+prop_1_ad <- prop_stats(nrow(player_1_errors_ad), nrow(player_1_total_serve_returns_ad))
+prop_1_deuce <- prop_stats(nrow(player_1_errors_deuce), nrow(player_1_total_serve_returns_deuce))
+prop_2_ad <- prop_stats(nrow(player_2_errors_ad), nrow(player_2_total_serve_returns_ad))
+prop_2_deuce <- prop_stats(nrow(player_2_errors_deuce), nrow(player_2_total_serve_returns_deuce))
+
+string_1_ad <- paste(nrow(player_1_errors_ad), '/', nrow(player_1_total_serve_returns_ad), sep="")
+string_1_deuce <- paste(nrow(player_1_errors_deuce), '/', nrow(player_1_total_serve_returns_deuce), sep="")
+string_2_ad <- paste(nrow(player_2_errors_ad), '/', nrow(player_2_total_serve_returns_ad), sep="")
+string_2_deuce <- paste(nrow(player_2_errors_deuce), '/', nrow(player_2_total_serve_returns_deuce), sep="")
+
+string_prop_1_ad <- paste0(prop_1_ad, '% ', '(', string_1_ad, ')')
+string_prop_1_deuce <- paste0(prop_1_deuce, '% ', '(', string_1_deuce, ')')
+string_prop_2_ad <- paste0(prop_2_ad, '% ', '(', string_2_ad, ')')
+string_prop_2_deuce <- paste0(prop_2_deuce, '% ', '(', string_2_deuce, ')')
+
+plot_data_ad_deuce <- data.frame(
+  player = c(player_1, player_2),
+  adErrorPercent = c(prop_1_ad, prop_2_ad),
+  deuceErrorPercent = c(prop_1_deuce, prop_2_deuce),
+  adErrorText = c(string_prop_1_ad, string_prop_2_ad),
+  deuceErrorText = c(string_prop_1_deuce, string_prop_2_deuce)
+)
+
+# First, select only the percentage columns and the player column
+percent_df <- plot_data_ad_deuce %>% select(player, adErrorPercent, deuceErrorPercent)
+
+# Then pivot the percent_df to long format
+long_percent_df <- percent_df %>% pivot_longer(cols = -player, names_to = "error_type", values_to = "error_percent")
+
+# Now, create a corresponding dataframe for the text columns
+text_df <- plot_data_ad_deuce %>% select(player, adErrorText, deuceErrorText)
+
+# Adjust the column names to match those in long_percent_df
+names(text_df)[2:3] <- c("adErrorPercent", "deuceErrorPercent")
+
+# Pivot the text_df to long format
+long_text_df <- text_df %>% pivot_longer(cols = -player, names_to = "error_type", values_to = "error_text")
+
+# Combine the percent and text dataframes by inner joining them
+combined_df <- inner_join(long_percent_df, long_text_df, by = c("player", "error_type"))
+
+# Now you can plot with ggplot2
+ggplot(combined_df, aes(x = player, y = error_percent, fill = error_type)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.7) +
+  geom_text(
+    aes(label = error_text), 
+    position = position_dodge(width = 0.9), 
+    vjust = -0.25,
+    size = 3 # Adjust this value to change text size
+  ) +
+  labs(
+    title = "Error Percent by Side",
+    x = "Player", 
+    y = "Error Percentage",
+    fill = "Error Type"
+  ) +
+  scale_fill_manual(
+    values = c("adErrorPercent" = "#2D68C4", "deuceErrorPercent" = "#F2A900"), # Change colors as needed
+    labels = c("Ad Error", "Deuce Error") # Change legend labels as needed
+  ) +
+  theme_minimal() +
+  theme(legend.title = element_text(size = 10)) # Change legend title size if needed
+```
+
+
+
+
+
+```
+
