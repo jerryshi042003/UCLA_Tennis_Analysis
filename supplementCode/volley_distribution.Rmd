@@ -41,13 +41,6 @@ shot_merged <- merge(shotdata, example_df, by='pointNumber')
 
 # Volley Distribution Function
 volley_distribution <- function(shotdata, player) {
-
-      ad_volley <- shot_merged %>%
-                     filter(isVolley == 1 & shotHitBy == player & side == "Ad" & shotDirection == "Down the Line")
-        
-        won <- unique(ad_volley$pointNumber[which(ad_volley$pointWonBy_PV == player)])
-        View(won)
-  
     ad_volley_win <- shot_merged %>%
                      filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>%
                             summarise("Type" = "Win Percentage",
