@@ -41,22 +41,24 @@ shot_merged <- merge(shotdata, example_df, by='pointNumber')
 
 # Volley Distribution Function
 volley_distribution <- function(shotdata, player) {
+
+      ad_volley <- shot_merged %>%
+                     filter(isVolley == 1 & shotHitBy == player & side == "Ad" & shotDirection == "Down the Line")
+        
+        won <- unique(ad_volley$pointNumber[which(ad_volley$pointWonBy_PV == player)])
+        View(won)
   
-    ad_volley_win <- shot_merged %>% 
-                     filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>% 
-                     summarise("Type" = "Win Percentage",
-                               "Ad_DTL" = round(((length(which((shotDirection == "Down the Line"  & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Down the Line"))))*100),
-                               "Ad_CC" = round(((length(which((shotDirection == "Crosscourt"  & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Crosscourt"))))*100))
+    ad_volley_win <- shot_merged %>%
+                     filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>%
+                            summarise("Type" = "Win Percentage",
+                              "Ad_DTL" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Down the Line")])) / length(unique(pointNumber[shotDirection == "Down the Line"])) * 100),
+                              "Ad_CC" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Crosscourt")])) / length(unique(pointNumber[shotDirection == "Crosscourt"])) * 100)) 
     
-    deuce_volley_win <- shot_merged %>% 
-                        filter(isVolley == 1 & shotHitBy == player & side == "Deuce") %>% 
-                        summarise("Type" = "Win Percent Percentage",
-                               "Deuce_DTL" = round(((length(which((shotDirection == "Down the Line" & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Down the Line"))))*100),
-                               "Deuce_CC" = round(((length(which((shotDirection == "Crosscourt" & pointWonBy_PV == player)))) /
-                                 (length(which(shotDirection == "Crosscourt"))))*100))
+    deuce_volley_win <- shot_merged %>%
+                     filter(isVolley == 1 & shotHitBy == player & side == "Deuce") %>%
+                            summarise("Type" = "Win Percentage",
+                              "Deuce_DTL" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Down the Line")])) / length(unique(pointNumber[shotDirection == "Down the Line"])) * 100),
+                              "Deuce_CC" = round(length(unique(pointNumber[which(pointWonBy_PV == player & shotDirection == "Crosscourt")])) / length(unique(pointNumber[shotDirection == "Crosscourt"])) * 100)) 
     
     ad_volley_count <- shot_merged %>% 
                        filter(isVolley == 1 & shotHitBy == player & side == "Ad") %>% 
