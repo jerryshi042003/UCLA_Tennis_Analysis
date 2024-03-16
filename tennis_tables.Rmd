@@ -20,9 +20,6 @@ shotdata <- read.csv("SpencerJohnson_AlessioBasile_Shot.csv")
 pointdata <- read.csv("SpencerJohnson_AlessioBasile_Point_ForVisuals.csv")
 player1 <- "Spencer Johnson"
 player2 <- "Alessio Basile"
-
-player_first <- "Spencer"
-player_last <- "Johnson"
 ```
 
 # Quick Statistics Table
