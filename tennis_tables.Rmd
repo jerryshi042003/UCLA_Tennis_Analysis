@@ -11,19 +11,7 @@ library(dplyr)
 library(ggplot2)
 library(gt)
 library(scales)
-
-library(png)
-library(readr)
-library(dplyr)
-library(grid)
-library(ggplot2)
-library(ggpubr)
-library(ggtext)
-library(reshape)
-library(reshape2)
-library(zoo)
-
-library(ti)
+library(tidyr)
 ```
 
 # Loading in Data
@@ -367,7 +355,8 @@ for (i in 1:nrow(df_CLEANED)){
     
     category = paste(serveZone, side, sep = "")
     
-    if(is.na(next_row["isErrorNet"]) && is.na(next_row["isErrorLong"]) && is.na(next_row["isErrorLong"]) && is.na(next_row["isErrorWideR"]) && is.na(next_row["isErrorWideL"]))
+    if(is.na(next_row["isErrorNet"]) && is.na(next_row["isErrorLong"]) && is.na(next_row["isErrorLong"]) && 
+       is.na(next_row["isErrorWideR"]) && is.na(next_row["isErrorWideL"]))
     {
       df_SERVES["successfulReturns",category] <- df_SERVES["successfulReturns",category] + 1
       df_SERVES["pointWon",category] <- df_SERVES["pointWon",category] + pointWon(i,df_CLEANED)
@@ -562,9 +551,7 @@ plot_data <- data.frame(player = c(player_1, player_2),
                         'Second Return Error Percent' = c(prop_12, prop_22),
                         error_prop_first = c(paste0(prop_11, '% ', '(', string_11, ')'), paste0(prop_21, '% ', '(', string_21, ')')),
                         error_prop_second = c(paste0(prop_12, '% ', '(', string_12, ')'), paste0(prop_22, '% ', '(', string_22, ')')))
-```
 
-```{r}
 # Reshape data to long format
 df_long <- plot_data %>% 
   pivot_longer(cols = c("First.Return.Error.Percent", "Second.Return.Error.Percent"),
@@ -590,11 +577,7 @@ ggplot(df_long, aes(x = player, y = errorPercent, fill = serve)) +
        y = "Error Percent (%)",
        fill = "Serve Type") +
   theme(legend.title = element_blank())
-```
 
-Final Visualization 
-
-```{r}
 player_1_errors <- player_1_data[player_1_data$firstServeIn == 1 || player_1_data$secondServeIn,]
 player_2_errors <- player_2_data[player_2_data$firstServeIn == 1 || player_2_data$secondServeIn,]
 
@@ -680,9 +663,4 @@ ggplot(combined_df, aes(x = player, y = error_percent, fill = error_type)) +
   theme(legend.title = element_text(size = 10)) # Change legend title size if needed
 ```
 
-
-
-
-
-```
 
