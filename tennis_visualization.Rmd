@@ -364,10 +364,9 @@ doubles_ex$serverName <- na.locf(doubles_ex$serverName)
 serve_placement(doubles_ex, player = "Timothy Li")
 ```
 
-# Data Manipulation and Plotting
+# Forehand/Backhand Shot Type
 ```{r}
-# Volley Distribution Function
-volley_distribution <- function(shotdata, player) {
+shot_type <- function(shotdata, player) {
   
     ad_backhand_perc <- shotdata %>% 
                      filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Ad") %>% 
@@ -447,7 +446,7 @@ volley_distribution <- function(shotdata, player) {
     annotate("segment", x = 7, y = 0.6, xend = 7, yend = 7.5, cex = 1, color = 'white', 
              arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
     
-  # Forehand plot
+    # Forehand plot
     forehand_plot  <- ggplot() +
     labs(title = paste("Forehand Shot %", player), x = "", y = "") +
     xlim(0, 10) +
@@ -491,6 +490,6 @@ volley_distribution <- function(shotdata, player) {
   grid.arrange(forehand_plot,backhand_plot ,nrow=1)
 }
 
-volley_distribution(shotdata, player1)
+shot_type(shotdata, player1)
 ```
 
