@@ -38,9 +38,6 @@ col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve
                "Return Points Won %", "Ace (Count)", "Double Fault (Count)")
 
 percent_table <- function(pointdata, player){
-  server_order <- unique(pointdata$serverName)
-  pointdata$serverName <- factor(pointdata$serverName, levels = server_order)
-  
   serveIn <- pointdata %>% 
     filter(serverName == player) %>% 
     summarise("firstServeInPercent" = (length(which((serveResult == "1st Serve In"))) / 
@@ -85,6 +82,10 @@ percent_table <- function(pointdata, player){
 }
 
 sum_plot <- function(data){
+
+  server_order <- unique(data$Server)
+  data$Server <- factor(data$Server, levels = server_order)
+
   ggplot(data, aes(Stat, Percent)) +
     geom_bar(stat = "identity", aes(fill = Server), position = "dodge") +
     geom_label(aes(label = Percent), colour = "black", cex = 5) +
