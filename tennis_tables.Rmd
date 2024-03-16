@@ -265,7 +265,7 @@ df_CLEANED = data.frame()
 #Delete all the rows where UCLA is Serving
 for (i in 1:nrow(shotdata)){
   row <- shotdata[i,]
-  if (row["serverName"] == "Tyler Zink") #replace 'Tyler Zink' with the opponent of the UCLA Player. Make sure it matches name in CSV file.
+  if (row["serverName"] == player2)
   {
     df_CLEANED <- rbind(df_CLEANED, row)
   }
