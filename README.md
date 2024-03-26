@@ -1,4 +1,4 @@
-# UCLA_Tennis_Analysis
+# UCLA Tennis Analysis
 
 R/Python code used for visualizations in match reports.
 
