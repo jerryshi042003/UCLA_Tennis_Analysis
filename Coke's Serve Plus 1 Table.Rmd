@@ -1,0 +1,244 @@
+---
+title: "Tennis Visualization Coke's Serve"
+author: "Brian Dinh"
+date: "2024-03-12"
+output: html_document
+---
+
+# PLEASE RUN THE LAST COMMAND INTO YOUR CONSOLE TO GET THE IMAGE
+
+
+
+
+# Libraries
+```{r}
+library(png)
+library(readr)
+library(dplyr)
+library(grid)
+library(ggplot2)
+library(ggpubr)
+library(ggtext)
+library(reshape)
+library(reshape2)
+library(zoo)
+library(gt)
+library(scales)
+library("formattable")
+
+```
+
+# Loading in Data
+```{r}
+pointdata <- read.csv("Point_Visuals_SpencerJohnson_AlessioBasile.csv")
+shotdata <- read.csv("Shot_Visuals_SpencerJohnson_AlessioBasile.csv")
+
+# Assuming pointdata is a data frame or list containing player names
+player1 <- pointdata$player1Name[1]
+player2 <- pointdata$player2Name[1]
+
+grid1 <- readPNG("Tennis_Court_Dark_With_Background_Half.png")
+
+```
+
+
+# Merging the Data
+```{r}
+# Merge Data
+example_df <- pointdata[, c('pointWonBy', 'pointNumber','player1ServePlacement')]
+
+colnames(example_df)[colnames(example_df) == 'pointWonBy'] <- 'pointWonBy_PV'
+shot_merged <- merge(shotdata, example_df, by='pointNumber')
+
+cat("Checking which points are not marked in pointWonBy_PV...\n") # : ", which(shot_merged["pointWonBy_PV"] == ""))
+if (length(which(shot_merged["pointWonBy_PV"] == "")) == 0) {
+  cat("Check Passed! ✔")
+} else {
+  which(shot_merged["pointWonBy_PV"] == "")
+}
+#View(shot_merged)
+```
+
+
+
+
+# Finding Serve + 1 Data
+```{r}
+# View(pointdata)
+# View(shotdata)
+# need to find where he serves on Deuce, then hits "Down the Line" -> look at win% , then we can find "Crosscourt" -> look at win%
+# need to find where he serves on Ad, then he hits "Down the Line"\
+
+# if the side is blank
+  for (i in 1:nrow(shot_merged)){
+    if (shot_merged[i, "side"] == "") {
+      if (shot_merged[i-1, "shotInRally"] == 1){
+        shot_merged[i, "side"] <- shot_merged[i -1 , "side"]
+      }
+      
+      # If return is Ad and Crosscourt
+      else if (shot_merged[i-1, "side"] == "Ad" & shot_merged[i-1, "shotDirection"] == "Crosscourt") {
+        shot_merged[i, "side"] <- "Ad"
+      }
+      # if return is Ad and Down the Line  
+      else if (shot_merged[i-1, "side"] == "Ad" & shot_merged[i-1, "shotDirection"] == "Down the Line") {
+        shot_merged[i, "side"] <- "Deuce"
+      }
+      # If return is Deuce and Cross Court
+     else if (shot_merged[i-1, "side"] == "Deuce" & shot_merged[i-1, "shotDirection"] == "Crosscourt") {
+        shot_merged[i, "side"] <- "Deuce"
+     }
+      # If return is Deuce and Down the Line
+      else if (shot_merged[i-1, "side"] == "Deuce" & shot_merged[i-1, "shotDirection"] == "Down the Line") {
+        shot_merged[i, "Side"] <- "Ad"
+      }
+    }
+  }
+cat("Checking if shot in rally is blank....\n") # \nCheck: ", which(shot_merged["side"] == ""))
+if (length(which(shot_merged["side"] == "")) == 0) {
+  cat("Check Passed! ✔")
+} else {
+  which(shot_merged["side"] == "")
+}
+# View(shot_merged)
+
+```
+
+
+
+# Getting Change of Dir After Serving Deuce (Hitting to Ad Side)
+```{r}
+# Correct Index
+## Getting a list of the third rally shots after player serves on Deuce T
+servingDeuceT <- shot_merged %>%
+  group_by(pointNumber) %>% slice(3) %>% filter(serverName == player1, grepl("Deuce: T", player1ServePlacement))
+
+## Getting a list of the third rally shots after player serves on Deuce Body
+servingDeuceBody <- shot_merged %>%
+  group_by(pointNumber) %>% slice(3) %>% filter(serverName == player1, grepl("Deuce: Body", player1ServePlacement))
+
+### Getting a list of the third rally shots after player serves on Deuce Wide
+servingDeuceWide <- shot_merged %>%
+  group_by(pointNumber) %>% slice(3) %>% filter(serverName == player1, grepl("Deuce: Wide", player1ServePlacement))
+
+
+
+## Getting the count of all shots that were change of direction to Ad side after serving Deuce T ("Deuce: DTL" AND "Ad: Crosscourt")
+servingDeuceT_changedir_count <-sum( ((servingDeuceT["side"] == "Deuce" & servingDeuceT["shotDirection"] == "Down the Line") | (servingDeuceT["side"] == "Ad" & servingDeuceT["shotDirection"] == "Crosscourt")))
+
+
+## Getting the count of all shots that were change of direction to Ad side after serving Deuce Body ("Deuce: DTL" AND "Ad: Crosscourt")
+servingDeuceBody_changedir_count <-sum( ((servingDeuceBody["side"] == "Deuce" & servingDeuceBody["shotDirection"] == "Down the Line") | (servingDeuceBody["side"] == "Ad" & servingDeuceBody["shotDirection"] == "Crosscourt")))
+
+
+## Getting the count of all shots that were change of direction to Ad side after serving Deuce Wide ("Deuce: DTL" AND "Ad: Crosscourt")
+servingDeuceWide_changedir_count <-sum( ((servingDeuceWide["side"] == "Deuce" & servingDeuceWide["shotDirection"] == "Down the Line") | (servingDeuceWide["side"] == "Ad" & servingDeuceWide["shotDirection"] == "Crosscourt")))
+
+
+##### Getting count of when they won now #####
+
+
+## Getting the count of all shots that were change of direction to Ad side after serving Deuce T ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON 
+servingDeuceT_changedir_won_count <- sum( ((servingDeuceT["side"] == "Deuce" & servingDeuceT["shotDirection"] == "Down the Line") | (servingDeuceT["side"] == "Ad" & servingDeuceT["shotDirection"] == "Crosscourt"))  & servingDeuceT["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were change of direction to Ad Side after serving Deuce Body ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
+servingDeuceBody_changedir_won_count <- sum( ((servingDeuceBody["side"] == "Deuce" & servingDeuceBody["shotDirection"] == "Down the Line") | (servingDeuceBody["side"] == "Ad" & servingDeuceBody["shotDirection"] == "Crosscourt"))  & servingDeuceBody["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were change of direction to Ad Side after serving Deuce Wide ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
+servingDeuceWide_changedir_won_count <- sum( ((servingDeuceWide["side"] == "Deuce" & servingDeuceWide["shotDirection"] == "Down the Line") | (servingDeuceWide["side"] == "Ad" & servingDeuceWide["shotDirection"] == "Crosscourt"))  & servingDeuceWide["pointWonBy_PV"] == player1)
+
+
+```
+
+
+# Getting Change of Dir After Serving Ad (Hitting to Deuce Side)
+```{r}
+# Correct Index
+## Getting a list of the third rally shots after player serves on Ad T
+servingAdT <- shot_merged %>%
+  group_by(pointNumber) %>% slice(3) %>% filter(serverName == player1, grepl("Ad: T", player1ServePlacement))
+
+## Getting a list of the third rally shots after player serves on Ad Body
+servingAdBody <- shot_merged %>%
+  group_by(pointNumber) %>% slice(3) %>% filter(serverName == player1, grepl("Ad: Body", player1ServePlacement))
+
+## Getting a list of the third rally shots after player serves on Ad Wide
+servingAdWide <- shot_merged %>%
+  group_by(pointNumber) %>% slice(3) %>% filter(serverName == player1, grepl("Ad: Wide", player1ServePlacement))
+
+
+
+
+## Getting the count of all shots that were change of direction to Deuce side after serving Ad T("Ad: DTL" AND "Deuce: Crosscourt")
+servingAdT_changedir_count <-sum( ((servingAdT["side"] == "Ad" & servingAdT["shotDirection"] == "Down the Line") | (servingAdT["side"] == "Deuce" & servingAdT["shotDirection"] == "Crosscourt")))
+
+
+## Getting the count of all shots that were change of direction to Deuce side after serving Ad Body ("Deuce: DTL" AND "Ad: Crosscourt")
+servingAdBody_changedir_count <-sum( ((servingAdBody["side"] == "Ad" & servingAdBody["shotDirection"] == "Down the Line") | (servingAdBody["side"] == "Deuce" & servingAdBody["shotDirection"] == "Crosscourt")))
+
+
+## Getting the count of all shots that were change of direction to Deuce side after serving Ad Wide ("Deuce: DTL" AND "Ad: Crosscourt")
+servingAdWide_changedir_count <-sum( ((servingAdWide["side"] == "Ad" & servingAdWide["shotDirection"] == "Down the Line") | (servingAdWide["side"] == "Deuce" & servingAdWide["shotDirection"] == "Crosscourt")))
+
+
+##### Getting count of when they won now #####
+
+
+## Getting the count of all shots that were change of direction to Deuce Side after serving Ad T ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
+servingAdT_changedir_won_count <- sum( ((servingAdT["side"] == "Ad" & servingAdT["shotDirection"] == "Down the Line") | (servingAdT["side"] == "Deuce" & servingAdT["shotDirection"] == "Crosscourt"))  & servingAdT["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were change of direction to Deuce Side after serving Ad Body ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
+servingAdBody_changedir_won_count <- sum( ((servingAdBody["side"] == "Ad" & servingAdBody["shotDirection"] == "Down the Line") | (servingAdBody["side"] == "Deuce" & servingAdBody["shotDirection"] == "Crosscourt"))  & servingAdBody["pointWonBy_PV"] == player1)
+
+## Getting the count of all shots that were change of direction to Deuce Side after serving Ad Wide ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
+servingAdWide_changedir_won_count <- sum( ((servingAdWide["side"] == "Ad" & servingAdWide["shotDirection"] == "Down the Line") | (servingAdWide["side"] == "Deuce" & servingAdWide["shotDirection"] == "Crosscourt"))  & servingAdWide["pointWonBy_PV"] == player1)
+
+```
+
+# Making it Into A Data Frame   
+```{r}
+
+serveplus1 <- data.frame(
+  "AdT" = c(servingAdT_changedir_count, paste0(round(servingAdT_changedir_won_count/servingAdT_changedir_count * 100,2),"%")),
+  "AdBody" = c(servingAdBody_changedir_count, paste0(round(servingAdBody_changedir_won_count/servingAdBody_changedir_count * 100,2),"%")),
+  "AdWide" = c(servingAdWide_changedir_count, paste0(round(servingAdWide_changedir_won_count/servingAdWide_changedir_count * 100,2),"%")),
+  
+  "DeuceT" = c(servingDeuceT_changedir_count, paste0(round(servingDeuceT_changedir_won_count/servingDeuceT_changedir_count * 100,2),"%")),
+  "DeuceBody" = c(servingDeuceBody_changedir_count, paste0(round(servingDeuceBody_changedir_won_count/servingDeuceBody_changedir_count * 100,2),"%")),
+  "DeuceWide" = c(servingDeuceWide_changedir_count, paste0(round(servingDeuceWide_changedir_won_count/servingDeuceWide_changedir_count * 100,2),"%")), check.names = FALSE
+  
+)
+
+rownames(serveplus1) <- c("Serve + 1 Count", "Win %")
+
+gtserveplus1 <- serveplus1 %>%
+   gt(rownames_to_stub = TRUE) %>%
+  tab_header(title=md("**Serve + 1**"), subtitle = NULL, preheader = NULL) %>%
+   cols_label(AdT = 'T', AdBody = 'Body', AdWide = 'Wide', DeuceT = 'T', DeuceBody = 'Body', DeuceWide = 'Wide') %>%
+   tab_spanner(
+    label = "Deuce Serves",
+    columns = 2:4) %>%
+    tab_spanner(
+      label = "Ad Serves",
+      columns = 5:7) %>%
+  tab_options(data_row.padding = px(15), column_labels.padding = px(7), column_labels.padding.horizontal = px(15), container.padding.y = px(15), heading.padding = px(7)) %>% 
+  cols_align(align=c("center"),columns = everything())
+gtserveplus1
+
+
+
+##################################################################################################
+##################################################################################################
+##################################################################################################
+################# PLEASE RUN THIS LAST COMMAND INTO YOUR CONSOLE TO GET THE IMAGE#################
+##################################################################################################
+##################################################################################################
+##################################################################################################
+
+gtsave(gtserveplus1, "serve+1.png", path = NULL)
+```
+
+
