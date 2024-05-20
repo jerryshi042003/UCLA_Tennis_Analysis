@@ -24,6 +24,7 @@ library(reshape2)
 library(zoo)
 library(gt)
 library(scales)
+library(MASS)
 library("formattable")
 
 ```
@@ -148,9 +149,43 @@ servingDeuceBody_changedir_won_count <- sum( ((servingDeuceBody["side"] == "Deuc
 
 ## Getting the count of all shots that were change of direction to Ad Side after serving Deuce Wide ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
 servingDeuceWide_changedir_won_count <- sum( ((servingDeuceWide["side"] == "Deuce" & servingDeuceWide["shotDirection"] == "Down the Line") | (servingDeuceWide["side"] == "Ad" & servingDeuceWide["shotDirection"] == "Crosscourt"))  & servingDeuceWide["pointWonBy_PV"] == player1)
-
-
 ```
+
+
+## No Change of Direction After Serving Deuce (Hitting to Deuce Side)
+```{r}
+## Getting the count of all shots that were NOT change of direction after serving Deuce T ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingDeuceT_nochange_count <-sum( ((servingDeuceT["side"] == "Deuce" & servingDeuceT["shotDirection"] == "Crosscourt") | (servingDeuceT["side"] == "Ad" & servingDeuceT["shotDirection"] == "Down the Line")))
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce Body ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingDeuceBody_nochange_count <-sum( ((servingDeuceBody["side"] == "Deuce" & servingDeuceBody["shotDirection"] == "Crosscourt") | (servingDeuceBody["side"] == "Ad" & servingDeuceBody["shotDirection"] == "Down the Line")))
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce Wide ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingDeuceWide_nochange_count <-sum( ((servingDeuceWide["side"] == "Deuce" & servingDeuceWide["shotDirection"] == "Crosscourt") | (servingDeuceWide["side"] == "Ad" & servingDeuceWide["shotDirection"] == "Down the Line")))
+
+
+##### Getting count of when they won now #####
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce T ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingDeuceT_nochange_won_count <- sum( ((servingDeuceT["side"] == "Deuce" & servingDeuceT["shotDirection"] == "Crosscourt") | (servingDeuceT["side"] == "Ad" & servingDeuceT["shotDirection"] == "Down the Line"))  & servingDeuceT["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce Body ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingDeuceBody_nochange_won_count <- sum( ((servingDeuceBody["side"] == "Deuce" & servingDeuceBody["shotDirection"] == "Crosscourt") | (servingDeuceBody["side"] == "Ad" & servingDeuceBody["shotDirection"] == "Down the Line")) & servingDeuceBody["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce Wide ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingDeuceWide_nochange_won_count <- sum( ((servingDeuceWide["side"] == "Deuce" & servingDeuceWide["shotDirection"] == "Crosscourt") | (servingDeuceWide["side"] == "Ad" & servingDeuceWide["shotDirection"] == "Down the Line"))  & servingDeuceWide["pointWonBy_PV"] == player1)
+```
+
+
+
+
+
+
 
 
 # Getting Change of Dir After Serving Ad (Hitting to Deuce Side)
@@ -198,26 +233,76 @@ servingAdWide_changedir_won_count <- sum( ((servingAdWide["side"] == "Ad" & serv
 
 ```
 
+
+## No Change of Direction After Serving Ad (Hitting to Ad Side)
+```{r}
+## Getting the count of all shots that were NOT change of direction after serving Ad T ("Deuce: Down the Line" AND "Ad: Crosscourt")
+servingAdT_nochange_count <-sum( ((servingAdT["side"] == "Deuce" & servingAdT["shotDirection"] == "Down the Line") | (servingAdT["side"] == "Ad" & servingAdT["shotDirection"] == "Crosscourt")))
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce Body ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingAdBody_nochange_count <-sum( ((servingAdBody["side"] == "Deuce" & servingAdBody["shotDirection"] == "Down the Line") | (servingAdBody["side"] == "Ad" & servingAdBody["shotDirection"] == "Crosscourt")))
+
+
+## Getting the count of all shots that were NOT change of direction after serving Deuce Wide ("Deuce: Crosscourt" AND "Ad: Down the Line")
+servingAdWide_nochange_count <-sum( ((servingAdWide["side"] == "Deuce" & servingAdWide["shotDirection"] == "Down the Line") | (servingAdWide["side"] == "Ad" & servingAdWide["shotDirection"] == "Crosscourt")))
+
+
+##### Getting count of when they won now #####
+
+
+## Getting the count of all shots that were NOT change of direction after serving Ad T ("Deuce: Crosscourt" AND "Ad: Down the Line")& where player1 WON 
+servingAdT_nochange_won_count <- sum( ((servingAdT["side"] == "Deuce" & servingAdT["shotDirection"] == "Down the Line") | (servingAdT["side"] == "Ad" & servingAdT["shotDirection"] == "Crosscourt"))  & servingAdT["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were NOT change of direction after serving Ad Body ("Deuce: Crosscourt" AND "Ad: Down the Line")& where player1 WON 
+servingAdBody_nochange_won_count <- sum( ((servingAdBody["side"] == "Deuce" & servingAdBody["shotDirection"] == "Down the Line") | (servingAdBody["side"] == "Ad" & servingAdBody["shotDirection"] == "Crosscourt")) & servingAdBody["pointWonBy_PV"] == player1)
+
+
+## Getting the count of all shots that were change of direction to Ad Side after serving Deuce Wide ("Deuce: DTL" AND "Ad: Crosscourt") & where player1 WON
+servingAdWide_nochange_won_count <- sum( ((servingAdWide["side"] == "Deuce" & servingAdWide["shotDirection"] == "Down the Line") | (servingAdWide["side"] == "Ad" & servingAdWide["shotDirection"] == "Crosscourt"))  & servingAdWide["pointWonBy_PV"] == player1)
+```
+
+
+
 # Making it Into A Data Frame   
 ```{r}
 
 serveplus1 <- data.frame(
-  "AdT" = c(servingAdT_changedir_count, paste0(round(servingAdT_changedir_won_count/servingAdT_changedir_count * 100,2),"%")),
-  "AdBody" = c(servingAdBody_changedir_count, paste0(round(servingAdBody_changedir_won_count/servingAdBody_changedir_count * 100,2),"%")),
-  "AdWide" = c(servingAdWide_changedir_count, paste0(round(servingAdWide_changedir_won_count/servingAdWide_changedir_count * 100,2),"%")),
   
-  "DeuceT" = c(servingDeuceT_changedir_count, paste0(round(servingDeuceT_changedir_won_count/servingDeuceT_changedir_count * 100,2),"%")),
-  "DeuceBody" = c(servingDeuceBody_changedir_count, paste0(round(servingDeuceBody_changedir_won_count/servingDeuceBody_changedir_count * 100,2),"%")),
-  "DeuceWide" = c(servingDeuceWide_changedir_count, paste0(round(servingDeuceWide_changedir_won_count/servingDeuceWide_changedir_count * 100,2),"%")), check.names = FALSE
+    "DeuceT" = c(paste0(servingDeuceT_changedir_won_count, "/", servingDeuceT_changedir_count),
+            paste0(servingDeuceT_nochange_won_count, "/", servingDeuceT_nochange_count), 
+            paste0(round((servingDeuceT_changedir_won_count + servingDeuceT_nochange_won_count) / (servingDeuceT_changedir_count + servingDeuceT_nochange_count),2) * 100,"%")),
+  
+  "DeuceBody" = c(paste0(servingDeuceBody_changedir_won_count, "/", servingDeuceBody_changedir_count),
+            paste0(servingDeuceBody_nochange_won_count, "/", servingDeuceBody_nochange_count),
+            paste0(round((servingDeuceBody_changedir_won_count + servingDeuceBody_nochange_won_count) / (servingDeuceBody_changedir_count + servingDeuceBody_nochange_count ),2) * 100,"%")),
+  
+  "DeuceWide" = c(paste0(servingDeuceWide_changedir_won_count, "/", servingDeuceWide_changedir_count),
+            paste0(servingDeuceWide_nochange_won_count, "/", servingDeuceWide_nochange_count),  
+            paste0(round((servingDeuceWide_changedir_won_count + servingDeuceWide_nochange_won_count)/ (servingDeuceWide_changedir_count + servingDeuceWide_nochange_won_count),2) * 100,"%")),
+  "AdT" = c(paste0(servingAdT_changedir_won_count, "/", servingAdT_changedir_count),
+            paste0(servingAdT_nochange_won_count, "/", servingAdT_nochange_count),
+            paste0(round((servingAdT_changedir_won_count + servingAdT_nochange_won_count) / (servingAdT_changedir_count + servingAdT_nochange_count),2) * 100,"%")),
+  
+  "AdBody" = c(paste0(servingAdBody_changedir_won_count, "/", servingAdBody_changedir_count),
+            paste0(servingAdBody_nochange_won_count, "/", servingAdBody_nochange_count),
+            paste0(round((servingAdBody_changedir_won_count + servingAdBody_nochange_won_count) / (servingAdBody_changedir_count + servingAdBody_nochange_count),2) * 100,"%")),
+  
+  "AdWide" = c(paste0(servingAdWide_changedir_won_count, "/", servingAdWide_changedir_count),
+            paste0(servingAdWide_nochange_won_count, "/", servingAdWide_nochange_count), 
+            paste0(round((servingAdWide_changedir_won_count + servingAdWide_nochange_won_count) / (servingAdWide_changedir_count + servingAdWide_nochange_count),2) * 100,"%")),
+  check.names = FALSE
   
 )
 
-rownames(serveplus1) <- c("Serve + 1 Count", "Win %")
+rownames(serveplus1) <- c("Serve + 1 (Change Direction)","Serve + 1 (No Change Direction)", "Win %")
 
 gtserveplus1 <- serveplus1 %>%
    gt(rownames_to_stub = TRUE) %>%
   tab_header(title=md("**Serve + 1**"), subtitle = NULL, preheader = NULL) %>%
-   cols_label(AdT = 'T', AdBody = 'Body', AdWide = 'Wide', DeuceT = 'T', DeuceBody = 'Body', DeuceWide = 'Wide') %>%
+   cols_label(DeuceT = 'T', DeuceBody = 'Body', DeuceWide = 'Wide', 
+              AdT = 'T', AdBody = 'Body', AdWide = 'Wide') %>%
    tab_spanner(
     label = "Deuce Serves",
     columns = 2:4) %>%
@@ -238,7 +323,10 @@ gtserveplus1
 ##################################################################################################
 ##################################################################################################
 
-gtsave(gtserveplus1, "serve+1.png", path = NULL)
+
+### 
+your_wd <- as.character(getwd())
+gtsave(gtserveplus1, "serve+1.png", path = your_wd)
 ```
 
 
