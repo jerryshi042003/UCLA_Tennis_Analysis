@@ -296,7 +296,7 @@ serveplus1 <- data.frame(
   
 )
 
-rownames(serveplus1) <- c("Serve + 1 (Change Direction)","Serve + 1 (No Change Direction)", "Win %")
+rownames(serveplus1) <- c("Serve + 1 Pts Won (Change Direction)","Serve + 1 Pts Won (Same Direction)", "Win %")
 
 gtserveplus1 <- serveplus1 %>%
    gt(rownames_to_stub = TRUE) %>%
