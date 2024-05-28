@@ -17,6 +17,7 @@ tennis_visualization.Rmd
 - Serve Placement Court Visual
 - Volley Distribution Court Visual
 - Forehand/Backhand Shot Type Court Visual
+- Net Density Plot
 
 tennis_tables.ipynb
 - Return Table
