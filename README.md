@@ -3,23 +3,26 @@
 R/Python code used for visualizations in match reports.
 
 tennis_tables.Rmd
-- Forehand/Backhand Error Table (ErrorTableTemplate.Rmd)
-- Break Point Table (BreakPoint.Rmd)
-- Approach Shot Table (approach_shots.Rmd)
-- Return on Serves Table (new_serve_table.R)
-- Return Error Table (BSA Return Error Statistics Table.Rmd)
+- Ace/Double Fault Count
+- Approach Shot Table
+- Breakpoint Won Proportion
+- Forehand/Backhand Error Proportion
+- Returns on Serves
+- Return Error Table
+- Serve +1 Table
+- Ad/Deuce Table
 
 tennis_visualization.Rmd
-- Summary Statistics Visual (general_stats.Rmd)
-- Serve Placement Court Visual (serve_placement.Rmd)
-- Volley Distribution Court Visual (volley_distribution.Rmd)
-- Forehand/Backhand Shot Type Court Visual (shot_cross_down_%.Rmd)
+- Summary Statistics
+- Serve Placement Court Visual
+- Volley Distribution Court Visual
+- Forehand/Backhand Shot Type Court Visual
 
 tennis_tables.ipynb
-- Return Table (Serve Return Statistics.ipynb)
-- Winner Table (Winners.ipynb)
-- Net Percentages Table (Net percentages.ipynb)
-- Crosscourt/Down the Line Table (cross_down_%.ipynb)
+- Return Table
+- Winner Table
+- Net Percentages Table
+- Crosscourt/Down the Line Table
 
 tennis_visualization.ipynb
 - In Progress...
