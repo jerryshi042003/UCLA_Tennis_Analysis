@@ -1,0 +1,47 @@
+```{r}
+library(knitr)
+shotdata <- read.csv("Shot_Visuals_EliseWagle_NatalieDuffy.csv")
+player <- "Elise Wagle"
+grid <- readPNG("Full_Court.png")
+```
+
+```{r}
+ad_backhand_perc <- shotdata %>% 
+                     filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Ad") %>% 
+                     summarise("Shot Type AD" = "Backhand_perc_ad",
+                               "Ad down the line" = round(((length(which((shotDirection == "Down the Line")))) /
+                                 (length(shotDirection)))*100),
+                               "Ad cross court" = round(((length(which((shotDirection == "Crosscourt")))) /
+                                 (length(shotDirection)))*100))
+
+deuce_backhand_perc <- shotdata %>% 
+                        filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Deuce") %>% 
+                        summarise("Shot Type Deuce" = "Backhand_perc_deuce",
+                               "Deuce down the line" = round(((length(which((shotDirection == "Down the Line")))) /
+                                 (length(shotDirection)))*100),
+                               "Deuce cross court" = round(((length(which((shotDirection == "Crosscourt")))) /
+                                 (length(shotDirection)))*100))
+
+ad_forehand_perc <- shotdata %>% 
+                       filter(shotFhBh == "Forehand" & shotHitBy == player & side == "Ad") %>% 
+                        summarise("Shot Type AD" = "forehand_perc_ad",
+                               "Ad down the line" = round(((length(which((shotDirection == "Down the Line")))) /
+                                 (length(shotDirection)))*100),
+                               "Ad cross court" = round(((length(which((shotDirection == "Crosscourt")))) /
+                                 (length(shotDirection)))*100))
+
+deuce_forehand_perc <- shotdata %>% 
+                          filter(shotFhBh == "Forehand" & shotHitBy == player & side == "Deuce") %>% 
+                        summarise("Shot Type Deuce" = "forehand_perc_deuce",
+                               "Deuce down the line" = round(((length(which((shotDirection == "Down the Line")))) /
+                                 (length(shotDirection)))*100),
+                               "Deuce cross court" = round(((length(which((shotDirection == "Crosscourt")))) /
+                                 (length(shotDirection)))*100))
+
+df <- rbind(cbind(ad_backhand_perc, deuce_backhand_perc), cbind(ad_forehand_perc , deuce_forehand_perc))
+
+colnames(df) <- c("Shot Type AD", "Ad down the line", "Ad cross court", "Shot Type Deuce", "Deuce down the line", "Deuce cross court")
+
+kable(df)
+```
+
