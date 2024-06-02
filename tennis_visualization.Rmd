@@ -9,6 +9,8 @@ output: html_document
 ```{r}
 library(png)
 library(readr)
+library(knitr)
+library(tidyr)
 library(dplyr)
 library(grid)
 library(ggplot2)
@@ -22,16 +24,16 @@ library(gridExtra)
 
 # Loading in Data
 ```{r}
-shotdata <- read.csv("SpencerJohnson_AlessioBasile_Shot.csv")
-pointdata <- read.csv("SpencerJohnson_AlessioBasile_Point_ForVisuals.csv")
+shotdata <- read.csv("Shot_Visuals_EliseWagle_MotkaKomac.csv")
+pointdata <- read.csv("Point_Visuals_EliseWagle_MotkaKomac.csv")
 
 # Assuming pointdata is a data frame or list containing player names
 player1 <- pointdata$player1Name[1]
 player2 <- pointdata$player2Name[1]
 
-grid1 <- readPNG("serve_placement_court_new.png")
-grid2 <- readPNG("Court_Image_Volleys.png")
-grid3 <- readPNG("Tennis_Court_Dark_With_Background.png")
+grid1 <- readPNG("courtImages/serve_placement_court_new.png")
+grid2 <- readPNG("courtImages/Court_Image_Volleys.png")
+grid3 <- readPNG("courtImages/Tennis_Court_Dark_With_Background.png")
 ```
 
 # Summary Stats
@@ -334,36 +336,6 @@ volley_distribution <- function(shotdata, player) {
 volley_distribution(shotdata, player1)
 ```
 
-# Net Density Plot (DO NOT USE)
-```{r}
-# Extract playerNet1 and change NA to 0 and get names as 1
-# pointdata$atNetPlayer1[is.na(pointdata$atNetPlayer1) == TRUE] <- 0
-# pointdata$atNetPlayer1[pointdata$atNetPlayer1 == player] <- 1
-# 
-# data_set1 <- pointdata %>%
-#   select(setNum, atNetPlayer1) %>%
-#   mutate(games = 1:122) %>%
-#   group_by(games)
-
-# Graph by game, split by sets
-# ggplot(data_set1, aes(x = factor(games), y = factor(atNetPlayer1))) +
-#   geom_bar(stat = "identity", width = 0.1, fill = "blue") +
-#   labs(title = "Bar Plot of Player at Net per Game", x = "Game", y = "At Net(1)") +
-#   scale_x_discrete(breaks=c(9,17,18,22,23,44,46,51,55,67,80,81,88,89,92,94,96,102,104)) +
-#   facet_grid(~setNum, scales='free') +
-#   theme_minimal()
-```
-
-```{r}
-doubles_ex <- read.csv("Timothy_Giac vs. Columbia 0_00 - 9_38 - Sheet1.csv")
-
-library(zoo)
-doubles_ex$serverName[doubles_ex$serverName == ""] <- NA
-doubles_ex$serverName <- na.locf(doubles_ex$serverName)
-
-serve_placement(doubles_ex, player = "Timothy Li")
-```
-
 # Forehand/Backhand Shot Type
 ```{r}
 shot_type <- function(shotdata, player) {
@@ -491,5 +463,312 @@ shot_type <- function(shotdata, player) {
 }
 
 shot_type(shotdata, player1)
+```
+
+```{r}
+library(knitr)
+library(png)
+library(dplyr)
+library(grid)
+library(ggplot2)
+library(gridExtra)
+library(tidyr)
+shotdata <- read.csv("Shot_Visuals_SpencerJohnson_SamirBanerjee.csv")
+player <- "Spencer Johnson"
+grid <- readPNG("Full_Court.png")
+```
+
+# Plotting Volleys Serve+1
+```{r}
+# Volley Distribution Function
+volley_distribution <- function(shotdata, player) {
+
+    ad_backhand_perc <- shotdata %>% 
+  filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Ad" & isVolley == 1 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Backhand_perc_ad",
+    "Ad_DTL" = round(((length(which((shotDirection == "Down the Line")))))),
+    "Ad_CC" = round(((length(which((shotDirection == "Crosscourt"))))))
+  ) %>%
+  replace_na(list(
+    "Ad_DTL" = 0,
+    "Ad_CC" = 0
+  ))
+
+# Deuce Backhand Percentage
+deuce_backhand_perc <- shotdata %>% 
+  filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Deuce" & isVolley == 1 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Backhand_perc_deuce",
+    "Deuce_DTL" = round(((length(which((shotDirection == "Down the Line")))))),
+    "Deuce_CC" = round(((length(which((shotDirection == "Crosscourt"))))))
+  ) %>%
+  replace_na(list(
+    "Deuce_DTL" = 0,
+    "Deuce_CC" = 0
+  ))
+
+# Ad Forehand Percentage
+ad_forehand_perc <- shotdata %>% 
+  filter(shotFhBh == "Forehand" & shotHitBy == player & side == "Ad" & isVolley == 1 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Forehand_perc_ad",
+    "Ad_DTL" = round(((length(which((shotDirection == "Down the Line")))))),
+    "Ad_CC" = round(((length(which((shotDirection == "Crosscourt"))))))
+  ) %>%
+  replace_na(list(
+    "Ad_DTL" = 0,
+    "Ad_CC" = 0
+  ))
+
+# Deuce Forehand Percentage
+deuce_forehand_perc <- shotdata %>% 
+  filter(shotFhBh == "Forehand" & shotHitBy == player & side == "Deuce" & isVolley == 1 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Forehand_perc_deuce",
+    "Deuce_DTL" = round(((length(which((shotDirection == "Down the Line")))))),
+    "Deuce_CC" = round(((length(which((shotDirection == "Crosscourt"))))))
+  ) %>%
+  replace_na(list(
+    "Deuce_DTL" = 0,
+    "Deuce_CC" = 0
+  ))
+
+    
+    df <- rbind(cbind(ad_backhand_perc, deuce_backhand_perc), cbind(ad_forehand_perc , deuce_forehand_perc))
+    
+    g <- rasterGrob(grid3, width=unit(1,"npc"), height=unit(1,"npc"), interpolate = FALSE)
+  
+    # Keeping only first name for format purposes
+    player <- strsplit(player, " ")[[1]][1]
+# Backhand plot
+    backhand_plot <- ggplot() +
+    labs(title = paste("Bh Volley Serve+1", player), x = "", y = "") +
+    xlim(0, 10) +
+    ylim(0, 10) +
+    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.title.x = element_blank(), axis.title.y = element_blank(),
+          plot.title = element_text(hjust = 0.5, face = "bold")) + coord_fixed() +
+      
+    # Labels
+    annotate("text", x=1.85, y=7.9, label= paste0("Shots"), cex = 2.1, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3.2, y=-0, label= paste0("Ad"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=6.8, y=-0, label= paste0("Deuce"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=0.7, y=5.35, label= paste0("Net"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Down the Line
+    annotate("text", x=3, y=7.9, label= paste0(df$Ad_DTL[1]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Crosscourt
+    annotate("text", x=5.9, y=7.9, label= paste0(df$Ad_CC[1]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=5.9, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Crosscourt
+    annotate("text", x=4.1, y=7.9, label= paste0(df$Deuce_CC[1]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=4.1, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Down the Line
+    annotate("text", x=7, y=7.9, label= paste0(df$Deuce_DTL[1]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=7, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    # Arrows
+    annotate("segment", x = 3, y = 0.6, xend = 3, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 3, y = 0.6, xend = 5.9, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 4.1, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 7, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
+    
+    # Forehand plot
+    forehand_plot  <- ggplot() +
+    labs(title = paste("Fh Volley Serve+1", player), x = "", y = "") +
+    xlim(0, 10) +
+    ylim(0, 10) +
+    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.title.x = element_blank(), axis.title.y = element_blank(),
+          plot.title = element_text(hjust = 0.5, face = "bold")) + coord_fixed() +
+      
+    # Labels
+    annotate("text", x=1.85, y=7.9, label= paste0("Shots"), cex = 2.1, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3.2, y=0, label= paste0("Ad"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=6.8, y=0, label= paste0("Deuce"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=0.7, y=5.35, label= paste0("Net"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Down the Line
+    annotate("text", x=3, y=7.9, label= paste0(df$Ad_DTL[2]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Crosscourt
+    annotate("text", x=5.9, y=7.9, label= paste0(df$Ad_CC[2]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=5.9, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Crosscourt
+    annotate("text", x=4.1, y=7.9, label= paste0(df$Deuce_CC[2]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=4.1, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Down the Line
+    annotate("text", x=7, y=7.9, label= paste0(df$Deuce_DTL[2]), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=7, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    # Arrows
+    annotate("segment", x = 3, y = 0.6, xend = 3, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 3, y = 0.6, xend = 5.9, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 4.1, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 7, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
+  
+  grid.arrange(forehand_plot,backhand_plot ,nrow=1)
+}
+
+volley_distribution(shotdata, player1)
+```
+
+# Plotting Groundstroke Serve+1
+```{r}
+# Volley Distribution Function
+volley_distribution <- function(shotdata, player) {
+  # Replace all NaN in isVolley with 0
+  shotdata <- shotdata %>%
+  mutate(isVolley = replace_na(isVolley, 0))
+
+  
+    ad_backhand_perc <- shotdata %>% 
+  filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Ad" & isVolley == 0 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Backhand_perc_ad",
+    "Ad_DTL" = round(((length(which((shotDirection == "Down the Line")))) / (length(shotDirection)))*100),
+    "Ad_CC" = round(((length(which((shotDirection == "Crosscourt")))) / (length(shotDirection)))*100)
+  )
+
+# Deuce Backhand Percentage
+deuce_backhand_perc <- shotdata %>% 
+  filter(shotFhBh == "Backhand" & shotHitBy == player & side == "Deuce" & isVolley == 0 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Backhand_perc_deuce",
+    "Deuce_DTL" = round(((length(which((shotDirection == "Down the Line")))) / (length(shotDirection)))*100),
+    "Deuce_CC" = round(((length(which((shotDirection == "Crosscourt")))) / (length(shotDirection)))*100)
+  )
+
+# Ad Forehand Percentage
+ad_forehand_perc <- shotdata %>% 
+  filter(shotFhBh == "Forehand" & shotHitBy == player & side == "Ad" & isVolley == 0 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Forehand_perc_ad",
+    "Ad_DTL" = round(((length(which((shotDirection == "Down the Line")))) / (length(shotDirection)))*100),
+    "Ad_CC" = round(((length(which((shotDirection == "Crosscourt")))) / (length(shotDirection)))*100)
+  )
+
+# Deuce Forehand Percentage
+deuce_forehand_perc <- shotdata %>% 
+  filter(shotFhBh == "Forehand" & shotHitBy == player & side == "Deuce" & isVolley == 0 & shotInRally == 3) %>% 
+  summarise(
+    "Type" = "Forehand_perc_deuce",
+    "Deuce_DTL" = round(((length(which((shotDirection == "Down the Line")))) / (length(shotDirection)))*100),
+    "Deuce_CC" = round(((length(which((shotDirection == "Crosscourt")))) / (length(shotDirection)))*100)
+  )
+
+    
+    df <- rbind(cbind(ad_backhand_perc, deuce_backhand_perc), cbind(ad_forehand_perc , deuce_forehand_perc))
+    
+    g <- rasterGrob(grid3, width=unit(1,"npc"), height=unit(1,"npc"), interpolate = FALSE)
+  
+    # Keeping only first name for format purposes
+    player <- strsplit(player, " ")[[1]][1]
+# Backhand plot
+    backhand_plot <- ggplot() +
+    labs(title = paste("Bh Groundstroke Serve+1", player), x = "", y = "") +
+    xlim(0, 10) +
+    ylim(0, 10) +
+    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.title.x = element_blank(), axis.title.y = element_blank(),
+          plot.title = element_text(hjust = 0.5, face = "bold")) + coord_fixed() +
+      
+    # Labels
+      annotate("text", x=1.85, y=7.9, label= paste0("Shots"), cex = 2.1, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3.2, y=-0, label= paste0("Ad"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=6.8, y=-0, label= paste0("Deuce"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=0.7, y=5.35, label= paste0("Net"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Down the Line
+    annotate("text", x=3, y=7.9, label= paste0(df$Ad_DTL[1], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Crosscourt
+    annotate("text", x=5.9, y=7.9, label= paste0(df$Ad_CC[1], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=5.9, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Crosscourt
+    annotate("text", x=4.1, y=7.9, label= paste0(df$Deuce_CC[1], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=4.1, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Down the Line
+    annotate("text", x=7, y=7.9, label= paste0(df$Deuce_DTL[1], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=7, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    # Arrows
+    annotate("segment", x = 3, y = 0.6, xend = 3, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 3, y = 0.6, xend = 5.9, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 4.1, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 7, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
+    
+    # Forehand plot
+    forehand_plot  <- ggplot() +
+    labs(title = paste("Fh Groundstroke Serve+1", player), x = "", y = "") +
+    xlim(0, 10) +
+    ylim(0, 10) +
+    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+          axis.title.x = element_blank(), axis.title.y = element_blank(),
+          plot.title = element_text(hjust = 0.5, face = "bold")) + coord_fixed() +
+      
+    # Labels
+    annotate("text", x=1.85, y=7.9, label= paste0("Shots"), cex = 2.1, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3.2, y=0, label= paste0("Ad"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=6.8, y=0, label= paste0("Deuce"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    annotate("text", x=0.7, y=5.35, label= paste0("Net"), cex = 4, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Down the Line
+    annotate("text", x=3, y=7.9, label= paste0(df$Ad_DTL[2], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=3, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    
+    # Ad Crosscourt
+    annotate("text", x=5.9, y=7.9, label= paste0(df$Ad_CC[2], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=5.9, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Crosscourt
+    annotate("text", x=4.1, y=7.9, label= paste0(df$Deuce_CC[2], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=4.1, y=8.25, label= paste0("Cross"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+
+    # Deuce Down the Line
+    annotate("text", x=7, y=7.9, label= paste0(df$Deuce_DTL[2], "%"), cex = 2.5, fontface = 2, col = '#E6D412', family = "Tahoma") +
+    annotate("text", x=7, y=8.25, label= paste0("Line"), cex = 2.5, fontface = 2, col = 'white', family = "Tahoma") +
+    # Arrows
+    annotate("segment", x = 3, y = 0.6, xend = 3, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 3, y = 0.6, xend = 5.9, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 4.1, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last")) +
+    annotate("segment", x = 7, y = 0.6, xend = 7, yend = 7.5, cex = 1, color = 'white', 
+             arrow = arrow(length = unit(0.175, "inches"), ends = "last"))
+  
+  grid.arrange(forehand_plot,backhand_plot ,nrow=1)
+}
+
+volley_distribution(shotdata, player1)
 ```
 
