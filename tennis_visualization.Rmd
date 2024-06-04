@@ -7,19 +7,21 @@ output: html_document
 
 # Libraries
 ```{r}
-library(png)
+library(dplyr)
 library(readr)
 library(knitr)
 library(tidyr)
-library(dplyr)
-library(grid)
+library(tidyverse)
+library(png)
 library(ggplot2)
 library(ggpubr)
 library(ggtext)
+library(gghighlight)
 library(reshape)
 library(reshape2)
-library(zoo)
+library(grid)
 library(gridExtra)
+library(zoo)
 ```
 
 # Loading in Data
@@ -771,4 +773,40 @@ deuce_forehand_perc <- shotdata %>%
 
 volley_distribution(shotdata, player1)
 ```
+
+# Net Density Plot
+```{r}
+pointdata$atNetPlayer1[is.na(pointdata$atNetPlayer1) == TRUE] <- 0
+pointdata$atNetPlayer1[pointdata$atNetPlayer1 == player1] <- 1
+data_set1 <- pointdata %>%
+  select(setNum, gameScore, atNetPlayer1) %>%
+  summarise(counts = toString(atNetPlayer1), .by = c(setNum, gameScore))
+
+for (i in 1:nrow(data_set1)){
+  data_set1$counts[i] <- sum(!is.na(as.numeric(strsplit(data_set1$counts, ",")[[i]])))
+}
+
+data_set1$setNum[data_set1$setNum == 1] <- "Set 1"
+data_set1$setNum[data_set1$setNum == 2] <- "Set 2"
+data_set1$counts <- as.numeric(data_set1$counts)
+data_set1$colour <- ifelse(data_set1$counts == max(data_set1$counts),"red","steelblue")
+
+ggplot(data_set1, aes(x = gameScore, y = counts)) + 
+  geom_bar(stat = "identity",
+           fill = data_set1$colour,
+           position = position_dodge2(padding = 0.05),
+           width = 0.4) +
+  geom_text(aes(label = ifelse(counts == 3, 3, "")), vjust = -1) + 
+  scale_y_continuous(limits = c(0, 3.5)) +
+  facet_grid(~ setNum, scales = "free") +
+  ggtitle(paste(player1, "At Net Count")) + 
+  geom_smooth(aes(group = setNum),stat = "identity", bw = 1000, color = "black") + 
+  theme(axis.title.y = element_text(size = 12),
+        axis.title.x = element_blank(), 
+        panel.background =element_blank(), 
+        axis.text = element_text(size = 8), 
+        legend.position = "none") + 
+  geom_smooth(aes(group = setNum), stat = "identity", bw = 1000, color = "black")
+```
+
 
