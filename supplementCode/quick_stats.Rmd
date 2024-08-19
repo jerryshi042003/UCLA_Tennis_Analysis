@@ -9,7 +9,7 @@ output: html_document
 library(dplyr)
 
 # Quick Statistics Function
-quick_stats <- function(data, player){
+quick_percentages <- function(data, player){
   data$courtSide <- ifelse(data$pointScore %in% c("15-0", "15-30", "30-40", "40-0", "40-40 (Ad)",
                                             "0-15", "30-15", "40-30", "0-40"),
                        "Ad", 
@@ -20,23 +20,27 @@ quick_stats <- function(data, player){
   
   ad_serve <- data %>% 
   filter(serverName == player & courtSide == "Ad") %>% 
-  summarise("serverName" = player,
-            "adWide" = ((length(which(firstServeZone == "Wide")) + length(which(secondServeZone == "Wide"))) /
-              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100,
-            "adBody" = ((length(which(firstServeZone == "Body")) + length(which(secondServeZone == "Body"))) /
-              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100,
-            "adT" = ((length(which(firstServeZone == "T")) + length(which(secondServeZone == "T"))) /
-              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100)
+  summarise("Server Name" = player,
+            "Ad Serve Wide %" = round(((length(which(firstServeZone == "Wide")) + length(which(secondServeZone == "Wide"))) /
+              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100),
+            "Ad Serve Body %" = round(((length(which(firstServeZone == "Body")) + length(which(secondServeZone == "Body"))) /
+              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100),
+            "Ad Serve T %" = round(((length(which(firstServeZone == "T")) + length(which(secondServeZone == "T"))) /
+              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100))
   
   deuce_serve <- data %>% 
   filter(serverName == player & courtSide == "Deuce") %>% 
-  summarise("deuceWide" = ((length(which(firstServeZone == "Wide")) + length(which(secondServeZone == "Wide"))) /
-              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100,
-            "deuceBody" = ((length(which(firstServeZone == "Body")) + length(which(secondServeZone == "Body"))) /
-              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100,
-            "deuceT" = ((length(which(firstServeZone == "T")) + length(which(secondServeZone == "T"))) /
-              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100)
+  summarise("Deuce Serve Wide %" = round(((length(which(firstServeZone == "Wide")) + length(which(secondServeZone == "Wide"))) /
+              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100),
+            "Deuce Serve Body %" = round(((length(which(firstServeZone == "Body")) + length(which(secondServeZone == "Body"))) /
+              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100),
+            "Deuce Serve T %" = round(((length(which(firstServeZone == "T")) + length(which(secondServeZone == "T"))) /
+              (length(which(firstServeZone != "")) + length(which(secondServeZone != ""))))*100))
   
+  cbind(ad_serve, deuce_serve)
+}
+
+quick_counts <- function(data, player){
   temp_df <- data
   temp_df$returnData <- ifelse(grepl("^Forehand", data$returnData), "Forehand", 
          ifelse(grepl("^Backhand", data$returnData), "Backhand", NA))
@@ -45,26 +49,33 @@ quick_stats <- function(data, player){
  
   error_table <- temp_df %>% 
     filter(shotHitBy == player & is.na(isWinner)) %>% 
-    summarise("fhNet" = length(which((returnData == "Forehand" | shotType == "Forehand") & isErrorNet == 1)),
-              "fhWide" = length(which(((returnData == "Forehand" | shotType == "Forehand") & 
+    summarise("Server Name" = player,
+              "FH Error Net Count" = length(which((returnData == "Forehand" | shotType == "Forehand") & isErrorNet == 1)),
+              "FH Error Wide Count" = length(which(((returnData == "Forehand" | shotType == "Forehand") & 
                                          (isErrorWideL == 1 | isErrorWideR == 1)))),
-              "fhLong" = length(which((returnData == "Forehand" | shotType == "Forehand") & isErrorLong == 1)),
-              "bhNet" = length(which((returnData == "Backhand" | shotType == "Backhand") & isErrorNet == 1)),
-              "bhWide"= length(which(((returnData == "Backhand" | shotType == "Backhand") & 
+              "FH Error Long Count" = length(which((returnData == "Forehand" | shotType == "Forehand") & isErrorLong == 1)),
+              "BH Error Net Count" = length(which((returnData == "Backhand" | shotType == "Backhand") & isErrorNet == 1)),
+              "BH Error Wide Count"= length(which(((returnData == "Backhand" | shotType == "Backhand") & 
                                         (isErrorWideL == 1 | isErrorWideR == 1)))),
-              "bhLong" = length(which((returnData == "Backhand" | shotType == "Backhand") & isErrorLong == 1)))
+              "BH Error Long Count" = length(which((returnData == "Backhand" | shotType == "Backhand") & isErrorLong == 1)))
   
   net_table <- data %>% 
     filter(shotHitBy == player) %>% 
-    summarise("netCount" = length(which(isVolley == 1)))
+    summarise("Net Count" = length(which(isVolley == 1)))
   
-  cbind(ad_serve, deuce_serve, error_table, net_table)
+  cbind(error_table, net_table)
 }
 ```
 
 ```{r}
+library(reactablefmtr)
+library(htmltools)
+
 df <- read.csv("NandaPerotFullMatch.csv")
-rbind(quick_stats(df, "Govind Nanda"), quick_stats(df, "Raphael Perot"))
+percent_data <- rbind(quick_percentages(df, "Govind Nanda"), quick_percentages(df, "Raphael Perot"))
+count_data <- rbind(quick_counts(df, "Govind Nanda"), quick_counts(df, "Raphael Perot"))
+reactable(percent_data, theme = fivethirtyeight())
+reactable(count_data, theme = fivethirtyeight())
 ```
 
 ```{r}

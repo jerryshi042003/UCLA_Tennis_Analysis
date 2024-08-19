@@ -16,15 +16,15 @@ library(knitr)
 
 ### Propotion of Break Points Won
 ```{r}
-breakPoint <- function(match, firstName, lastName) {
+breakPoint <- function(match, playerName) {
   # Clean data for all break points for UCLA player
-  bpData <- match[((match$returnerName == paste(firstName, lastName)) & (match$isBreakPoint == "True")), ]
-  isSet1 <- bpData$setScore == "0-0"
-  isSet2 <- bpData$setScore == "0-1" | bpData$setScore == "1-0" 
-  isSet3 <- bpData$setScore == "1-1" 
-  bpWon <- bpData$pointWonBy == paste(firstName, lastName)
-  bpData$breakPointWon[bpWon] <- TRUE
-  bpData$breakPointWon[!bpWon] <- FALSE
+  View(match)
+  bpData <- match[((match$returnerName == playerName) & (match$isBreakPoint == "True")), ]
+  isSet1 <- bpData$setNum == 1
+  isSet2 <- bpData$setNum == 2
+  isSet3 <- bpData$setNum == 3
+  bpData$breakPointWon <- bpData$pointWonBy == playerName
+  
   
   # Set 1
   set1Data <- bpData[isSet1, ]
@@ -58,8 +58,7 @@ breakPoint <- function(match, firstName, lastName) {
 
 
 ```{r}
-# matchData <- read.csv("SpencerNewPoint.csv", header = TRUE)
-matchData2 <- read.csv("NandaPerotPoint.csv", header = TRUE)
-# breakPoint(matchData, "Spencer", "Johnson")
-breakPoint(matchData2, "Govind", "Nanda")
+matchdata <- read.csv("SpencerVsAlessioPoint.csv", header = TRUE)
+mode(matchdata$setNum)
+breakPoint(matchdata, "Spencer Johnson")
 ```

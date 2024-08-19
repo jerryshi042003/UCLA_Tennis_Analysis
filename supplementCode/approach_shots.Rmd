@@ -71,8 +71,8 @@ approach_count <- function(data, player){
 
 # Approach Shot Plot Function
 approach_plot <- function(data){
-  data$Stat <- factor(c("Approach Percent", "Approach Win Percent", "Volley Win Percent", "Volley Lose Percent", 
-                        "FH", "BH", "FH Win", "BH Win", "FH CC", "FH DTL", "BH CC", "BH DTL"))
+  data$Stat <- factor(c("Approach %", "Approach Win %", "Volley Win %", "Volley Lose %", 
+                        "FH %", "BH %", "FH Win %", "BH Win %", "FH CC %", "FH DTL %", "BH CC %", "BH DTL %"))
   data$Category <- c(rep("Approach Win", 4), rep("Forehand vs Backhand", 4), rep("Forehand", 2), rep("Backhand", 2))
   
   ggplot(data[9:12,], aes(x = Category, y = Percent, fill = Stat)) + 
@@ -100,5 +100,5 @@ df <- approach_table(data, player)
 df
 
 approach_count(data, player)
-approach_plot(df_percent)
+approach_plot(df)
 ```

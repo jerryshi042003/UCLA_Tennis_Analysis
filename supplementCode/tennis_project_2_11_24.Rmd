@@ -1,0 +1,74 @@
+---
+title: "tennis visualization"
+author: "Nathan Kim"
+date: "2024-02-11"
+output: pdf_document
+---
+```{r library downloads}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(gghighlight)
+```
+
+
+```{r}
+data<-read_csv("GovindNanda_RaphaelPerot_Point_ForVisuals.csv")
+
+## we want to extract playerNet1 and change NA to 0 and get names as 1
+
+data$atNetPlayer1[is.na(data$atNetPlayer1)==TRUE] <- 0
+data$atNetPlayer1[data$atNetPlayer1 == "Govind Nanda"] <-1
+
+sum(is.na(data$lastShotResult))
+
+data_set_counts<-data%>%select(setNum,atNetPlayer1)%>%group_by(setNum)%>%count(atNetPlayer1)%>%filter(atNetPlayer1==1)
+
+#Gather the game points and indicate which sets they are next to the scores. 
+  #group the gameScores and find the total number of times player showed up to net each game score. 
+
+data_set1<-data%>%select(setNum,gameScore,atNetPlayer1)%>%summarise(counts= toString(atNetPlayer1),.by = c(setNum, gameScore))
+
+for (i in 1:21){
+  
+  data_set1$counts[i]<-sum(as.numeric(strsplit(data_set1$counts, ", ")[[i]]))
+  
+}
+
+data_set1$counts<-as.numeric(data_set1$counts)
+
+set1_counts<-data_set1[1:12,]
+set2_counts<-data_set1[13:21,]
+
+
+g1<-ggplot(data=set1_counts, aes(x=gameScore, y=counts))+
+  geom_bar(stat="identity",fill="steelblue")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 3.9))+
+  geom_text(aes(label=counts), vjust=-1, size=3.5)+
+  ggtitle("Net Frequency throughout Match")+
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank()
+  )
+
+g1<-g1+theme(panel.background = element_blank())
+
+g2<-ggplot(data=set2_counts, aes(x=gameScore, y=counts))+
+  geom_bar(stat="identity",fill="steelblue")+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 3.9))+
+  geom_text(aes(label=counts), vjust=-1, size=3.5)+theme(
+    axis.title.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y =element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank()
+    )+
+    gghighlight(counts!=3,unhighlighted_params = list(fill = "BLACK"))
+ 
+g2<-g2+theme(panel.background = element_blank())
+
+grid.arrange(g1, g2, ncol=2)
+```
+
+

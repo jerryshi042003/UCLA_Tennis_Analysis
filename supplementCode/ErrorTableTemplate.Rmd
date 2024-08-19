@@ -12,13 +12,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Libraries
 ```{r}
 library(knitr)
+library(kableExtra)
 ```
 
 ### Proportion of Errors for Forehand/Backhand
 ```{r}
-errorPropTable <- function(match, firstName, lastName) {
-  # Forehand
-  fore <- match[((match$point_winner != paste(firstName, lastName)) & (match$errorType != "") & (match$Last.Shot.Forehand.Backhand == "Forehand")), ]
+errorPropTable <- function(match, playerName) {
+    # Forehand
+  fore <- match[((match$pointWonBy != playerName) & (match$errorType != "") & (match$player1LastShotFhBh == "Forehand")), ]
   isWide <- fore$errorType == "Wide Right" | fore$errorType == "Wide Left" 
   isLong <- fore$errorType == "Long" 
   isNet <- fore$errorType == "Net" 
@@ -29,7 +30,7 @@ errorPropTable <- function(match, firstName, lastName) {
   fore$errorType <- factor(fore$errorType, levels = errorTypeNames)
   
   # Backhand
-  back <- match[((match$point_winner != paste(firstName, lastName)) & (match$errorType != "") & (match$Last.Shot.Forehand.Backhand == "Backhand")), ]
+  back <- match[((match$pointWonBy!= playerName) & (match$errorType != "") & (match$player1LastShotFhBh == "Backhand")), ]
   isWide <- back$errorType == "Wide Right" | back$errorType == "Wide Left" 
   isLong <- back$errorType == "Long" 
   isNet <- back$errorType == "Net" 
@@ -52,7 +53,7 @@ errorPropTable <- function(match, firstName, lastName) {
 
 
 ```{r}
-matchData <- read.csv("SpencerNewPoint.csv", header = TRUE)
-errorPropTable(matchData, "Spencer", "Johnson")
+matchData <- read.csv("SpencerVsAlessioPoint.csv", header = TRUE)
+errorPropTable(matchData, "Spencer Johnson")
 ```
 

@@ -14,8 +14,8 @@ library(ggplot2)
 library(grid)
 library(kableExtra)
 
-col_names <- c("1st Serve In", "2nd Serve In", "1st Serve Won", "2nd Serve Won", "Ace",
-               "Double Fault", "Service Points Won", "Return Points Won")
+col_names <- c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", "2nd Serve Won %", "Ace %",
+               "Double Fault %", "Service Points Won %", "Return Points Won %")
 
 # Summary Statistics Table Function
 percent_table <- function(data, player){
@@ -51,16 +51,14 @@ percent_table <- function(data, player){
                 (length(which(firstServeIn == 1 | firstServeIn == 0)))*100))
 
   servicePointsWon <- data %>% 
-    filter(serverName == player & !is.na(isWinner)) %>% 
+    filter(serverName == player & isWinner == 1) %>% 
     summarise("servicePointsWonPercent" = ((length(which(isPointEnd == 1 & shotInRally %% 2 != 0))) /
-                (length(which(isPointEnd == 1 & shotInRally %% 2 != 0)) +
-                length(which(isPointEnd == 1 & shotInRally %% 2 == 0))))*100)
+                (length(which(isPointEnd == 1))))*100)
 
   returnPointsWon <- data %>% 
-    filter(serverName != player & !is.na(isWinner)) %>% 
+    filter(serverName != player & isWinner == 1) %>% 
     summarise("returnPointsWonPercent" = ((length(which(isPointEnd == 1 & shotInRally %% 2 == 0))) /
-                (length(which(isPointEnd == 1 & shotInRally %% 2 != 0)) +
-                length(which(isPointEnd == 1 & shotInRally %% 2 == 0))))*100)
+                (length(which(isPointEnd == 1))))*100)
 
   temp_df <- data.frame(serveIn, firstServeWon, secondServeWon, 
                         aceDoubleFault, servicePointsWon, returnPointsWon)
@@ -68,9 +66,9 @@ percent_table <- function(data, player){
   data <- data.frame("Stat" = col_names, 
                      "Percent" = round(as.numeric(unlist(temp_df[1,])), digits = 1))
   
-  data$Stat <- factor(data$Stat, levels = c("1st Serve In", "2nd Serve In", "1st Serve Won", 
-                                            "2nd Serve Won", "Ace", "Double Fault", 
-                                            "Service Points Won", "Return Points Won"))
+  data$Stat <- factor(data$Stat, levels = c("1st Serve In %", "2nd Serve In %", "1st Serve Won %", 
+                                            "2nd Serve Won %", "Ace %", "Double Fault %", 
+                                            "Service Points Won %", "Return Points Won %"))
   
   data
 }
