@@ -18,8 +18,8 @@ Here are some example projects you can find in this repository:
 - **Data Cleaning**: Scripts and resources for cleaning and preprocessing tennis match data for analysis.
 
 ## Examples
-- ![summary stats](https://github.com/shiyu-m/UCLA_Tennis_Analysis/assets/79689407/2f4425fe-ebab-4e6c-b78f-4bb3d605430d)
-- ![serve placement](https://github.com/shiyu-m/UCLA_Tennis_Analysis/assets/79689407/5e1a3ff2-ff01-4187-bef4-3b28d38317b8)
+![summary stats](https://github.com/shiyu-m/UCLA_Tennis_Analysis/assets/79689407/2f4425fe-ebab-4e6c-b78f-4bb3d605430d)
+![serve placement](https://github.com/shiyu-m/UCLA_Tennis_Analysis/assets/79689407/5e1a3ff2-ff01-4187-bef4-3b28d38317b8)
 
 ## Getting Started
 
