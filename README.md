@@ -1,4 +1,3 @@
-=======
 # UCLA Tennis Analysis Repository
 
 Welcome to the UCLA Tennis Analysis repository! This repository contains R and Python code used for visualizations in match reports, along with tools for court visualizations, dashboards, and data cleaning.
