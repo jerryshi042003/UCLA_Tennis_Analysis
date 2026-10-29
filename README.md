@@ -2,6 +2,9 @@
 
 Welcome to the UCLA Tennis Analysis repository! This repository contains R and Python code used for visualizations in match reports, along with tools for court visualizations, dashboards, and data cleaning.
 
+This is a fork of [shiyu-m/UCLA-Tennis-Analysis](https://github.com/shiyu-m/UCLA-Tennis-Analysis).
+The notebooks and reports preserve collaborative UCLA tennis analysis work.
+
 ## Example Projects
 
 Here are some example projects you can find in this repository:
@@ -23,11 +26,14 @@ Here are some example projects you can find in this repository:
 
 ## Getting Started
 
-To get started with this repository, clone it to your local machine and explore the various directories and example projects. Feel free to use the provided code as a reference or starting point for your own tennis analysis projects.
+Clone the repository to inspect the notebooks, R Markdown reports and court images.
+Running them also requires the match CSV/Excel inputs named in each file; those
+inputs are not bundled here. Several notebooks retain local paths that must be
+updated for your own files. There is no single reproducible app setup or test suite.
 
 ## License
 
-This repository is licensed under the [MIT License](LICENSE), so feel free to use the code for personal or commercial projects. If you find it helpful, a mention or link back to this repository would be appreciated!
+No repository-wide license file is included.
 
 ---
 
